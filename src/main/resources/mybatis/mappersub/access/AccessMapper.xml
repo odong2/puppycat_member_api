@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.access.AccessDaoSub">
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- access 테이블에서 memberUuid 조회 -->
+    <select id="getAccessInfo" parameterType="MemberDto" resultType="MemberDto">
+        SELECT
+            `pumeac`.`idx`,
+            `pumeac`.`member_uuid`
+        FROM
+            <include refid="database" />`puppycat_member_access` AS `pumeac`
+        WHERE
+            `pumeac`.`member_uuid`   =   #{memberUuid}
+        LIMIT 1
+    </select>
+
+    <!-- app 테이블에서 app_key 조회 -->
+    <select id="getAppInfo" parameterType="MemberDto" resultType="MemberDto">
+        SELECT
+            `pumeap`.`idx`,
+            `pumeap`.`member_uuid`,
+            `pumeap`.`state`
+        FROM
+            <include refid="database" />`puppycat_member_app` AS `pumeap`
+        WHERE
+            `pumeap`.`app_key`   =   #{appKey}
+        LIMIT 1
+    </select>
+
+    <!-- app 테이블에서 fcm_token 카운트 조회 -->
+    <select id="getAppSameFcmCount" parameterType="MemberDto" resultType="java.lang.Integer">
+        SELECT
+            count(`pumeap`.`idx`)
+        FROM
+        <include refid="database" />`puppycat_member_app` AS `pumeap`
+        WHERE
+            `pumeap`.`fcm_token` = #{fcmToken}
+        LIMIT 1
+    </select>
+
+</mapper>

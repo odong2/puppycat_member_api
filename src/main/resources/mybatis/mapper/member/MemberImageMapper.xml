@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.member.profile.MemberImageDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+       INSERT
+   =============================================================== -->
+    <!-- 프로필 회원 가입 시 이미지 등록하기 -->
+    <insert id="insertInitImage" parameterType="MemberDto">
+        INSERT INTO <include refid="database" />`puppycat_member_profile_img`
+        <set>
+            `uuid`              = #{uuid},
+            `member_uuid`       = #{uuid},
+            `sort`              = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 프로필 이미지 등록하기 -->
+    <insert id="insertImage" parameterType="java.util.HashMap">
+        INSERT INTO <include refid="database" />`puppycat_member_profile_img`
+        <set>
+            `uuid`              = #{uuid},
+            `member_uuid`        = #{memberUuid},
+            `url`               = #{fileUrl},
+            `upload_name`       = #{orgFileName},
+            `upload_path`       = #{uploadPath},
+            `img_width`         = #{imgWidth},
+            `img_height`        = #{imgHeight},
+            `sort`              = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 프로필 이미지 로그 등록하기 -->
+    <insert id="insertImageLog" parameterType="java.util.HashMap">
+        INSERT INTO <include refid="database" />`puppycat_member_profile_img_log`
+        <set>
+            `uuid`              = #{uuid},
+            `member_uuid`       = #{memberUuid},
+            `url`               = #{fileUrl},
+            `upload_name`       = #{orgFileName},
+            `upload_path`       = #{uploadPath},
+            `img_width`         = #{imgWidth},
+            `img_height`        = #{imgHeight},
+            `sort`              = 1,
+            `is_del`            = 0,
+            `state`             = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+       UPDATE
+   =============================================================== -->
+    <!-- 프로필 이미지 수정하기 -->
+    <update id="updateImage" parameterType="java.util.HashMap">
+        UPDATE <include refid="database" />`puppycat_member_profile_img`
+        <set>
+            `uuid`              = #{uuid},
+            `url`               = #{fileUrl},
+            `upload_name`       = #{orgFileName},
+            `upload_path`       = #{uploadPath},
+            `img_width`         = #{imgWidth},
+            `img_height`        = #{imgHeight},
+            `sort`              = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+        WHERE `member_uuid` = #{memberUuid}
+        LIMIT 1
+    </update>
+
+    <!-- ==============================================================
+        DELETE
+    =============================================================== -->
+</mapper>

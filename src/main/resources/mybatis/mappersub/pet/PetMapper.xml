@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.pet.PetDaoSub">
+
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 반려동물 고유 아이디 카운트 가져오기 -->
+    <select id="getCountByUuid" parameterType="String" resultType="int">
+        SELECT
+            COUNT(`pe`.`idx`) AS `cnt`
+        FROM <include refid="database" />`puppycat_pet` AS `pe`
+        WHERE
+            `pe`.`uuid` = #{uuid}
+    </select>
+
+    <!-- 반려동물 품종 idx 카운트 가져오기 -->
+    <select id="getCountByBreedIdx" parameterType="_long" resultType="int">
+        SELECT
+            COUNT(`pebr`.`idx`) AS `cnt`
+        FROM <include refid="database" />`puppycat_pet_breed` AS `pebr`
+        WHERE
+            `pebr`.`idx` = #{idx}
+    </select>
+
+    <!-- 반려동물 성격 idx 카운트 가져오기 -->
+    <select id="getCountByPersonalityIdx" parameterType="_long" resultType="int">
+        SELECT
+            COUNT(`pepety`.`idx`) AS `cnt`
+        FROM <include refid="database" />`puppycat_pet_personality_type` AS `pepety`
+        WHERE
+            `pepety`.`idx` = #{idx}
+    </select>
+
+    <!-- 반려동물 건강질환 idx 카운트 가져오기 -->
+    <select id="getCountByHealthIdx" parameterType="_long" resultType="int">
+        SELECT
+            COUNT(`pehety`.`idx`) AS `cnt`
+        FROM <include refid="database" />`puppycat_pet_health_type` AS `pehety`
+        WHERE
+            `pehety`.`idx` = #{idx}
+    </select>
+
+    <!-- 반려동물 알러지 idx 카운트 가져오기 -->
+    <select id="getCountByAllergyIdx" parameterType="_long" resultType="int">
+        SELECT
+            COUNT(`pealty`.`idx`) AS `cnt`
+        FROM <include refid="database" />`puppycat_pet_allergy_type` AS `pealty`
+        WHERE
+            `pealty`.`idx` = #{idx}
+    </select>
+
+    <!-- 반려동물 프로필 이미지 고유아이디 중복체크 -->
+    <select id="getCountByImgUuid" parameterType="String" resultType="int">
+        SELECT
+            COUNT(`peprim`.`idx`) AS `cnt`
+        FROM <include refid="database" />`puppycat_pet_profile_img` AS `peprim`
+        WHERE
+            `peprim`.`uuid` = #{uuid}
+    </select>
+
+    <!-- 품종 카운트 -->
+    <select id="getBreedTotalCnt" parameterType="SearchDto" resultType="int">
+        SELECT
+            COUNT(`idx`) AS `totalCnt`
+        FROM <include refid="database"/>`puppycat_pet_breed` AS `pebr`
+        WHERE
+                `type_idx` = #{type}
+            AND `state`    = 1
+        <if test="searchWord != '' and searchWord != null">
+            <bind name="val" value="searchWord + '%'" />
+            AND `pebr`.`name` LIKE #{val}
+        </if>
+    </select>
+
+    <!-- 품종 리스트 -->
+    <select id="getBreedList" parameterType="SearchDto" resultType="BreedDto">
+        SELECT
+            `pebr`.`idx`,
+            `pebr`.`name`,
+            `pebr`.`sort`
+        FROM <include refid="database"/>`puppycat_pet_breed` AS `pebr`
+        WHERE
+                `pebr`.`type_idx` = #{type}
+            AND `pebr`.`state`    = 1
+        <if test="searchWord != '' and searchWord != null">
+            <bind name="val" value="searchWord + '%'" />
+            AND `pebr`.`name` LIKE #{val}
+        </if>
+        ORDER BY `pebr`.`name` ASC
+        <if test="pagination != null">
+            LIMIT #{recordSize}
+            OFFSET #{pagination.limitStart}
+        </if>
+    </select>
+
+    <!-- 알러지 카운트 -->
+    <select id="getAllergyTotalCnt" parameterType="SearchDto" resultType="int">
+        SELECT
+            COUNT(`idx`) AS `totalCnt`
+        FROM <include refid="database"/>`puppycat_pet_allergy_type` AS `pealty`
+        WHERE
+            `state`  = 1
+    </select>
+
+    <!-- 알러지 리스트 -->
+    <select id="getAllergyList" parameterType="SearchDto" resultType="AllergyDto">
+        SELECT
+            `pealty`.`idx`,
+            `pealty`.`name`
+        FROM <include refid="database"/>`puppycat_pet_allergy_type` AS `pealty`
+        WHERE
+            `pealty`.`state`    = 1
+        <if test="pagination != null">
+            LIMIT #{recordSize}
+            OFFSET #{pagination.limitStart}
+        </if>
+    </select>
+
+    <!-- 건강질환 카운트 -->
+    <select id="getHealthTotalCnt" parameterType="SearchDto" resultType="int">
+        SELECT
+            COUNT(`idx`) AS `totalCnt`
+        FROM <include refid="database"/>`puppycat_pet_allergy_type` AS `pealty`
+        WHERE
+            `state`  = 1
+    </select>
+
+    <!-- 건강질환 리스트 -->
+    <select id="getHealthList" parameterType="SearchDto" resultType="HealthDto">
+        SELECT
+            `pehety`.`idx`,
+            `pehety`.`name`
+        FROM <include refid="database"/>`puppycat_pet_health_type` AS `pehety`
+        WHERE
+            `pehety`.`state`    = 1
+        <if test="pagination != null">
+            LIMIT #{recordSize}
+            OFFSET #{pagination.limitStart}
+        </if>
+    </select>
+
+    <!-- 성격 카운트  -->
+    <select id="getPersonalityTotalCnt" parameterType="SearchDto" resultType="int">
+        SELECT
+            COUNT(`idx`) AS `totalCnt`
+        FROM <include refid="database"/>`puppycat_pet_personality_type` AS `pepeco`
+        WHERE
+            `pepeco`.`state` = 1
+    </select>
+
+    <!-- 성격 리스트 -->
+    <select id="getPersonalityList" parameterType="SearchDto" resultType="PersonalityDto">
+        SELECT
+            `pepeco`.`idx`,
+            `pepeco`.`name`
+        FROM <include refid="database"/>`puppycat_pet_personality_type` AS `pepeco`
+        WHERE
+            `pepeco`.`state` = 1
+        <if test="pagination != null">
+            LIMIT #{recordSize}
+            OFFSET #{pagination.limitStart}
+        </if>
+    </select>
+
+    <!-- 회원의 펫인지 조회 -->
+    <select id="getMemberPetCnt" parameterType="PetDto" resultType="int">
+        SELECT
+            COUNT(`idx`) AS `cnt`
+        FROM <include refid="database"/>`puppycat_member_pet`
+        WHERE
+                `member_uuid` = #{memberUuid}
+            AND `pet_uuid`    = #{petUuid}
+    </select>
+
+    <!-- 기존 성격 idx 리스트 조회 -->
+    <select id="getPersonalityIdxList" parameterType="String" resultType="Long">
+        SELECT
+            `personality_type_idx` AS `idx`
+        FROM <include refid="database"/>`puppycat_pet_info_personality`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state` = 1
+    </select>
+
+    <!-- 기존 건강 질환 idx 리스트 조회 -->
+    <select id="getHealthIdxList" parameterType="String" resultType="Long">
+        SELECT
+            `health_type_idx` AS `idx`
+        FROM <include refid="database"/>`puppycat_pet_info_health`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state` = 1
+    </select>
+
+    <!-- 기존 알러지 idx 리스트 조회-->
+    <select id="getAllergyIdxList" parameterType="String" resultType="Long">
+        SELECT
+            `allergy_type_idx` AS `idx`
+        FROM <include refid="database"/>`puppycat_pet_info_allergy`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state` = 1
+    </select>
+
+    <!-- 기존 기타 성격 조회 -->
+    <select id="getPersonalityEtc" parameterType="String" resultType="String">
+        SELECT
+            `personality`
+        FROM <include refid="database"/>`puppycat_pet_personality_etc`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state`= 1
+    </select>
+
+    <!-- 기존 기타 건강 질환 조회 -->
+    <select id="getHealthEtc" parameterType="String" resultType="String">
+        SELECT
+            `health`
+        FROM <include refid="database"/>`puppycat_pet_health_etc`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state`= 1
+    </select>
+
+    <!-- 기존 기타 알러지 조회 -->
+    <select id="getAllergyEtc" parameterType="String" resultType="String">
+        SELECT
+            `allergy`
+        FROM <include refid="database"/>`puppycat_pet_allergy_etc`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state`= 1
+    </select>
+
+    <!-- 삭제된 성격 type_idx 조회 -->
+    <select id="getDeletedPetPersonalityList" parameterType="String" resultType="Long">
+        SELECT
+            `personality_type_idx`
+        FROM <include refid="database"/>`puppycat_pet_info_personality`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state` = 0
+    </select>
+
+    <!-- 삭제된 건강 type_idx 조회 -->
+    <select id="getDeletedPetHealthList" parameterType="String" resultType="Long">
+        SELECT
+            `health_type_idx`
+        FROM <include refid="database"/>`puppycat_pet_info_health`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state` = 0
+    </select>
+
+    <!-- 삭제된 알러지 type_idx 조회 -->
+    <select id="getDeletedPetAllergyList" parameterType="String" resultType="Long">
+        SELECT
+            `allergy_type_idx`
+        FROM <include refid="database"/>`puppycat_pet_info_allergy`
+        WHERE
+                `pet_uuid` = #{petUuid}
+            AND `state` = 0
+    </select>
+
+</mapper>

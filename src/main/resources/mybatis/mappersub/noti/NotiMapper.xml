@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.noti.NotiDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 전체 카운트 -->
+    <select id="getTotalCount" parameterType="SearchDto" resultType="_long">
+        SELECT
+            COUNT(`pumeno`.`idx`) AS `iTotalCount`
+        FROM
+            <include refid="database"/>`puppycat_member_notification` AS `pumeno`
+        WHERE
+                `pumeno`.`member_uuid` = #{memberUuid}
+            AND `pumeno`.`state` = 1
+        <if test="type != null">
+            AND `pumeno`.`type` = #{type}
+        </if>
+    </select>
+
+
+    <!-- 회원 마지막으로 알림 함 본 날짜  -->
+    <select id="getEventNotiSetting" parameterType="NotiDto" resultType="int">
+        SELECT
+            `snmenosuse`.`state`
+        FROM
+            <include refid="database"/>`puppycat_member_notification_sub_setting` AS `snmenosuse`
+        WHERE
+                `snmenosuse`.`member_uuid` = #{memberUuid}
+            AND `snmenosuse`.`noti_type` = 2
+            AND `snmenosuse`.`sub_type` = 1
+        LIMIT 1
+    </select>
+
+    <!-- 댓글에 멘션 된 회원 IDX  -->
+    <select id="getCommentMentionMember" parameterType="long" resultType="long">
+        SELECT
+            DISTINCT `pumeme`.`member_uuid`
+        FROM <include refid="database" />`puppycat_contents_comment_mention_mapping` as `pucocomema`
+        INNER JOIN `puppycat_member_mention` AS `pumeme`
+            ON `pucocomema`.`mention_idx` = `pumeme`.`idx`
+        WHERE
+                `pucocomema`.`comment_idx` = #{commentIdx}
+            AND `pucocomema`.`state` = 1
+    </select>
+
+    <!-- 알림 리스트 -->
+    <select id="getNotiList" parameterType="SearchDto" resultType="NotiDto">
+        SELECT
+            `pumeno`.`idx`
+            ,`pumeno`.`member_uuid`
+            ,`pumeno`.`type`
+            ,`pumeno`.`sub_type`
+            ,`pumeno`.`all_noti_idx`
+            ,`pumeno`.`sender_uuid`
+            ,`pumeno`.`contents_idx`
+            ,`pumeno`.`comment_idx`
+            ,`pumeno`.`title`
+            ,`pumeno`.`body`
+            ,`pumeno`.`img`
+            ,`pumeno`.`contents`
+            ,`pumeno`.`state`
+            ,CONVERT_TZ( `pumeno`.`reg_date`, 'UTC', '${convertTZ}') AS `reg_date`
+            ,CASE WHEN `pumeno`.`reg_date` <![CDATA[ < ]]> `pumenosh`.`show_date` THEN 1 ELSE 0 END AS `is_show`
+        FROM
+            <include refid="database"/>`puppycat_member_notification` AS `pumeno`
+        LEFT JOIN <include refid="database"/>`puppycat_member_notification_show` AS `pumenosh`
+            ON `pumeno`.`member_uuid` =  `pumenosh`.`member_uuid`
+        WHERE
+            `pumeno`.`member_uuid` = #{memberUuid}
+        <if test="type != null">
+            AND `pumeno`.`type` = #{type}
+        </if>
+        ORDER BY `pumeno`.`reg_date` DESC
+        LIMIT #{recordSize}
+        OFFSET #{pagination.limitStart}
+    </select>
+
+    <!-- 회원 알림 내역 체크 -->
+    <select id="getNotiDuple" parameterType="NotiDto" resultType="Long">
+        SELECT
+            `pumeno`.`idx`
+        FROM
+            <include refid="database"/>`puppycat_member_notification` AS `pumeno`
+        WHERE
+                `pumeno`.`member_uuid` = #{memberUuid}
+            AND `pumeno`.`sub_type` = #{subType}
+            AND `pumeno`.`sender_uuid` = #{senderUuid}
+            AND `pumeno`.`state` <![CDATA[ = ]]> 1
+            AND `pumeno`.`reg_date` >= #{checkNotiDate}
+            <if test="contentsIdx != null">
+            AND `pumeno`.`contents_idx` = #{contentsIdx}
+            </if>
+        ORDER BY `pumeno`.`reg_date` DESC
+        LIMIT 1
+    </select>
+
+    <!-- 회원 마지막으로 알림 함 본 날짜  -->
+    <select id="getNotiShowDate" parameterType="NotiDto" resultType="String">
+        SELECT
+            `pumenosh`.`show_date`
+        FROM
+            <include refid="database"/>`puppycat_member_notification_show` AS `pumenosh`
+        WHERE
+            `pumenosh`.`member_uuid` = #{memberUuid}
+        LIMIT 1
+    </select>
+
+    <!-- 신규 알림 있는지 체크 -->
+    <select id="getCountNewNoti" parameterType="NotiDto" resultType="int">
+        SELECT
+            COUNT(`pumeno`.`idx`) AS `cnt`
+        FROM
+            <include refid="database" />`puppycat_member_notification` AS `pumeno`
+        <where>
+            <if test=" showDate != null and showDate != '' ">
+                `pumeno`.`reg_date` > #{showDate}
+            </if>
+            AND `pumeno`.`member_uuid` =  #{memberUuid}
+            AND `pumeno`.`state` = 1
+        </where>
+    </select>
+
+    <!-- 신규 공지 알림 있는지 체크 -->
+    <select id="getCountNewNoticeNoti" parameterType="NotiDto" resultType="int">
+        SELECT
+            COUNT(`punono`.`idx`) AS `cnt`
+        FROM
+        <include refid="database" />`puppycat_notification_notice` AS `punono`
+        <where>
+            <if test=" showDate != null and showDate != '' ">
+                `punono`.`reg_date` > #{showDate}
+            </if>
+            AND `punono`.`state` = 1
+        </where>
+    </select>
+
+    <!-- 팔로워 목록 puppycat_member_follow-->
+    <select id="getFollowerList" parameterType="NotiDto" resultType="long">
+        SELECT
+            `pumefo`.`member_uuid` AS `follower_idx`
+        FROM
+            <include refid="database"/>`puppycat_member_follow` AS `pumefo`
+        WHERE
+                `pumefo`.`follow_idx` = #{senderIdx}
+            AND `pumefo`.`state` = 1
+            AND `pumefo`.`reg_date` <![CDATA[ < ]]> #{regDate}
+    </select>
+
+    <!--  부모 댓글 작성자 IDX  -->
+    <select id="getParentCommentMember" parameterType="long" resultType="long">
+        SELECT
+            `pucoco`.`member_uuid`
+        FROM
+            <include refid="database" />`puppycat_contents_comment` as `pucoco`
+        WHERE
+            `pucoco`.`idx` = #{commentIdx}
+    </select>
+    
+     <!-- 회원별 신규 공지 알림 리스트 -->
+    <select id="getNoticeNotiList" parameterType="NotiDto" resultType="NotiDto">
+        SELECT
+            *
+        FROM
+            <include refid="database" />`puppycat_notification_notice` AS `punono`
+        <where>
+            <if test=" showDate != null and showDate != '' ">
+                `punono`.`reg_date` > #{showDate}
+            </if>
+            AND `punono`.`reg_date` >= #{joinDate}
+            AND `punono`.`state` = 1
+        </where>
+    </select>
+
+    <!--  팔로워 uuid 가져오기 -->
+    <select id="getFollowerMember" parameterType="NotiDto" resultType="String">
+        SELECT
+            `pume`.`uuid`
+        FROM
+            <include refid="database"/>`puppycat_member` AS `pume`
+        INNER JOIN `puppycat_member_login` AS `pumelo`
+            ON `pume`.`uuid` = `pumelo`.`member_uuid`
+        WHERE
+                `pume`.`uuid` IN
+            <foreach collection="memberUuidList" item="uuid" open="(" separator="," close=")">
+                #{uuid}
+            </foreach>
+            <if test="startDate != null and startDate != ''">
+                AND `pumelo`.`reg_date` <![CDATA[ < ]]> #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND `pumelo`.`reg_date` <![CDATA[ >= ]]> #{endDate}
+            </if>
+            AND `pume`.`state` = 1
+    </select>
+
+    <!-- ==============================================================
+        UPDATE
+    =============================================================== -->
+
+    <!-- ==============================================================
+        DELETE
+    =============================================================== -->
+</mapper>

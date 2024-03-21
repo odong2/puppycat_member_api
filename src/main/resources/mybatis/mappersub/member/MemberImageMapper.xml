@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.member.profile.MemberImageDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="memberImageColumns">
+
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 회원 이미지 유무 체크 -->
+    <select id="getCountByImage" parameterType="MemberImageDto" resultType="int">
+        SELECT
+            COUNT(`pumeprim`.`idx`) AS `cnt`
+        FROM
+            <include refid="database"/>`puppycat_member_profile_img` AS `pumeprim`
+        WHERE
+            `pumeprim`.`member_uuid` = #{memberUuid}
+    </select>
+
+    <!-- 고유 아이디 카운트 가져오기 -->
+    <select id="getCountByUuid" parameterType="String" resultType="int">
+        SELECT
+            COUNT(`pumeprim`.`idx`) AS `cnt`
+        FROM
+            <include refid="database" />`puppycat_member_profile_img` AS `pumeprim`
+        WHERE
+            `pumeprim`.`uuid` = #{uuid}
+    </select>
+
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.search.SearchDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="searchColumns">
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+      <!-- 글자가 온전히 똑같은 검색 결과 카운트 -->
+    <select id="getSearchNickUuid" parameterType="String" resultType="String">
+        SELECT
+            `pume`.`uuid`
+        FROM
+            <include refid="database"/>`puppycat_member` AS `pume`
+        INNER JOIN  <include refid="database"/>`puppycat_member_profile_intro` AS `pumeprin`
+            ON  `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN  <include refid="database"/>`puppycat_member_profile_img` AS `pumeprim`
+            ON  `pumeprim`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        WHERE
+            <bind name="val" value="searchWord + '%'"/>
+            `pume`.`nick` LIKE #{val}
+            AND `pume`.`state` = 1
+    </select>
+
+    <!-- 글자가 포함된 검색 결과 카운트 -->
+    <select id="getSameNickUuid" parameterType="String" resultType="String">
+        SELECT
+            `pume`.`uuid`
+        FROM
+            <include refid="database"/>`puppycat_member` AS `pume`
+        INNER JOIN  <include refid="database"/>`puppycat_member_profile_intro` AS `pumeprin`
+            ON  `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN  <include refid="database"/>`puppycat_member_profile_img` AS `pumeprim`
+            ON  `pumeprim`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        WHERE
+                `pume`.`nick` = #{searchWord}
+            AND `pume`.`state` = 1
+        LIMIT 1
+    </select>
+</mapper>

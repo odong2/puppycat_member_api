@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.member.MemberDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="memberColumns">
+
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 아이디 카운트 가져오기 -->
+    <select id="getCountById" parameterType="MemberDto" resultType="int">
+        SELECT
+            COUNT(`pume`.`idx`) AS `cnt`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        LEFT JOIN <include refid="database" />`puppycat_member_simple` AS `pumesi`
+            ON `pume`.`uuid` = `pumesi`.`member_uuid`
+        WHERE
+                `pume`.`id` = #{id}
+            AND `pume`.`is_simple` = #{isSimple}
+        <if test="state != null">
+            AND `pume`.`state` = #{state}
+        </if>
+        <if test="simpleId != null and !simpleId.equals('')">
+            AND `pumesi`.`simple_id` = #{simpleId}
+        </if>
+        <if test="simpleType != null and !simpleType.equals('')">
+            AND `pumesi`.`simple_type` = #{simpleType}
+        </if>
+    </select>
+
+    <!-- 해당 CI count 가져오기 -->
+    <select id="getCountByCi" parameterType="MemberDto" resultType="int">
+        SELECT
+            COUNT(`pumesi`.`idx`) AS `cnt`
+        FROM
+            <include refid="database" />`puppycat_member_simple` AS `pumesi`
+        INNER JOIN <include refid="database" />`puppycat_member_info` AS `pumein`
+            ON `pumesi`.`member_uuid` = `pumein`.`member_uuid`
+        WHERE
+            `pumein`.`ci` = #{ci}
+        AND
+            `pumesi`.`simple_type` = #{simpleType}
+    </select>
+
+    <!-- 고유 아이디 카운트 가져오기 -->
+    <select id="getCountByUuid" parameterType="String" resultType="int">
+        SELECT
+            COUNT(`pume`.`idx`) AS `cnt`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        WHERE
+                `pume`.`uuid` = #{uuid}
+            AND `pume`.`state` = 1
+    </select>
+
+    <!-- 회원 닉네임 가져오기 -->
+    <select id="getMemberNickByUuid" parameterType="String" resultType="String">
+        SELECT
+            `pume`.`nick`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        WHERE
+            `pume`.`uuid` = #{uuid}
+        LIMIT 1
+    </select>
+
+    <!-- 회원 가입일 가져오기 -->
+    <select id="getMemberJoinDate" parameterType="String" resultType="String">
+        SELECT
+            `pume`.`reg_date`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        WHERE
+            `pume`.`uuid` = #{uuid}
+        LIMIT 1
+    </select>
+
+    <!-- 회원 가입일 & 타임존 조회 -->
+    <select id="getMemberRegdate" parameterType="String" resultType="MemberDto">
+        SELECT
+            CONVERT_TZ( `pume`.`reg_date`, 'UTC', '${convertTZ}') AS `reg_date`,
+            `reg_date_tz`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        WHERE
+            `pume`.`uuid` = #{memeberUuid}
+    </select>
+
+    <!-- memberUuid 가져오기 by simpleId -->
+    <select id="getMemberUuidBySimpleId" parameterType="MemberDto" resultType="String">
+        SELECT
+            `pumesi`.`member_uuid`
+        FROM
+            <include refid="database" />`puppycat_member_simple` AS `pumesi`
+        WHERE
+            `pumesi`.`simple_id` = #{simpleId}
+    </select>
+
+    <!-- memberUuid 가져오기 by searchDto -->
+    <select id="getMemberUuidBySearch" parameterType="String" resultType="String">
+        SELECT
+            `pume`.`uuid`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        <where>
+            <if test="searchWord != '' and searchWord != null">
+                <bind name="val" value="'%' + searchWord + '%'" />
+                AND `pume`.`nick` LIKE #{val}
+            </if>
+        </where>
+    </select>
+
+    <!-- 회원 info 가져오기 by uuidList -->
+    <select id="getMemberInfoByUuidList" parameterType="MemberDto" resultType="MemberInfoDto">
+        SELECT
+            `pume`.`uuid`
+            ,`pume`.`nick`
+            , IF(`pumeprim`.`url` = '', '', CONCAT(#{imgDomain}, `pumeprim`.`url`)) `profileImgUrl`
+            ,`pumeprin`.`intro` AS `intro`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        INNER JOIN <include refid="database" />`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_profile_intro` AS `pumeprin`
+            ON `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_profile_img` AS `pumeprim`
+            ON `pumeprim`.`member_uuid` = `pume`.`uuid`
+            AND `pumeprim`.`sort` = 1
+        WHERE
+            `pume`.`uuid` IN
+        <foreach collection="uuidList" item="uuid" open="("  separator="," close=")">
+            #{uuid}
+        </foreach>
+    </select>
+
+    <!-- 회원 정보 가져오기 -->
+    <select id="getMemberInfoByUuid" parameterType="MemberDto" resultType="MemberDto">
+        SELECT
+            `pume`.`uuid` AS `member_uuid`
+            ,`pume`.`nick`
+            ,IF(`pumeprim`.`url` = '', '', CONCAT(#{imgDomain}, `pumeprim`.`url`)) `profileImgUrl`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        INNER JOIN <include refid="database" />`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_profile_intro` AS `pumeprin`
+            ON `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_profile_img` AS `pumeprim`
+            ON `pumeprim`.`member_uuid` = `pume`.`uuid` AND `pumeprim`.`sort` = 1
+        WHERE `pume`.`uuid` = #{memberUuid}
+    </select>
+
+    <!-- 회원 id 조회 -->
+    <select id="getMemberIdByCi" parameterType="MemberDto" resultType="String">
+        SELECT
+            `pume`.`id`
+        FROM <include refid="database"/>`puppycat_member` AS `pume`
+        INNER JOIN <include refid="database"/>`puppycat_member_info` AS `pumein`
+            ON `pume`.`uuid` = `pumein`.`member_uuid`
+        INNER JOIN <include refid="database"/>`puppycat_member_simple` AS `pumesi`
+            ON `pumesi`.`member_uuid` = `pume`.`uuid`
+        WHERE
+                `pumein`.`ci` = #{ci}
+            AND `pumesi`.`simple_type` = #{simpleType}
+    </select>
+</mapper>

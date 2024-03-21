@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.setting.NotificationSettingDao">
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        INSERT
+    =============================================================== -->
+    <!-- puppycat_member_notification_setting insert -->
+    <insert id="insertNotificationInitSetting" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_notification_setting`
+            (
+             `member_uuid`,
+             `type`,
+             `state`,
+             `reg_date`,
+             `reg_date_tz`
+             )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+        (
+            #{item.memberUuid},
+            #{item.type},
+            #{item.state},
+            #{item.regDate},
+            '${convertTZ}'
+         )
+        </foreach>
+    </insert>
+
+    <!-- puppycat_member_notification_sub_setting insert -->
+    <insert id="insertNotificationSubInitSetting" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_notification_sub_setting`
+            (
+                `member_uuid`,
+                `noti_type`,
+                `sub_type`,
+                `state`,
+                `reg_date`,
+                `reg_date_tz`
+            )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.memberUuid},
+                #{item.notiType},
+                #{item.subType},
+                #{item.state},
+                #{item.regDate},
+                '${convertTZ}'
+            )
+        </foreach>
+    </insert>
+
+    <!-- ==============================================================
+         UPDATE
+    =============================================================== -->
+    <!-- Main Setting 수정 -->
+    <update id="updateMainState" parameterType="NotificationSettingDto" keyProperty="affectedRow">
+        UPDATE
+        <include refid="database" />`puppycat_member_notification_setting`
+        SET
+            `state`         = #{state},
+            `reg_date`      = #{regDate},
+            `reg_date_tz`   = '${convertTZ}'
+        WHERE
+                `member_uuid` = #{memberUuid}
+            AND `type` = #{type}
+    </update>
+    <!-- Sub Setting 수정 -->
+    <update id="updateSubState" parameterType="NotificationSettingDto" keyProperty="affectedRow">
+        UPDATE
+            <include refid="database" />`puppycat_member_notification_sub_setting`
+        SET
+            `state`         = #{subState},
+            `reg_date`      = #{regDate},
+            `reg_date_tz`   = '${convertTZ}'
+        WHERE
+                `member_uuid` = #{memberUuid}
+            AND `noti_type` = #{notiType}
+            AND `sub_type` = #{subType}
+    </update>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.member.profile.MemberIntroDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+         INSERT
+     =============================================================== -->
+    <!-- 회원 프로필 소개 등록 -->
+    <insert id="insertIntro" parameterType="memberIntroDto">
+        INSERT INTO <include refid="database" />`puppycat_member_profile_intro`
+        <set>
+            `member_uuid`   = #{memberUuid},
+            `intro`         = #{intro},
+            `reg_date`      = #{regDate},
+            `reg_date_tz`   = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 프로필 소개글 로그 인서트 -->
+    <insert id="insertIntroLog" parameterType="memberIntroDto">
+        INSERT INTO <include refid="database" />`puppycat_member_profile_intro_log`
+        <set>
+            `member_uuid`   = #{memberUuid},
+            `intro`         = #{intro},
+            `reg_date`      = #{regDate},
+            `reg_date_tz`   = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+        UPDATE
+    =============================================================== -->
+    <update id="updateIntro" parameterType="memberIntroDto">
+        UPDATE <include refid="database" />`puppycat_member_profile_intro`
+        <set>
+            `intro`        = #{intro},
+            `reg_date`     = #{regDate},
+            `reg_date_tz`  = '${convertTZ}'
+        </set>
+        WHERE `member_uuid` = #{memberUuid}
+        LIMIT 1
+    </update>
+
+    <!-- ==============================================================
+        DELETE
+    =============================================================== -->
+</mapper>

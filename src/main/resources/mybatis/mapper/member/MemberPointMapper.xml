@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.member.MemberPointDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="pointColumns">
+
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 회원 보유 포인트 조회 -->
+    <select id="getMemberPoint" parameterType="String" resultType="MemberPointDto">
+        SELECT
+            `pumepo`.`point`,
+            `pumepo`.`save_point`,
+            `pumepo`.`use_point`,
+            `pumepo`.`expire_point`
+        FROM <include refid="database"/>`puppycat_member_point` AS `pumepo`
+        INNER JOIN <include refid="database"/>`puppycat_member` AS `pume`
+            ON `pume`.`uuid` = `pumepo`.`member_uuid`
+            AND `pume`.`state` = 1
+        WHERE
+            `member_uuid` = #{memberUuid}
+    </select>
+
+
+
+    <!-- 남은 포인트 idx & 포인트 조회 (point_save 테이블)-->
+    <select id="getMemberRestPointFromSave" parameterType="String" resultType="MemberPointSaveDto">
+        SELECT
+            `idx`,
+            `rest_point`
+        FROM <include refid="database"/>`puppycat_member_point_save`
+        WHERE
+                `member_uuid`    = #{memberUuid}
+            AND `state`          = 1
+            AND `rest_point`     > 0
+        ORDER BY `expiredate`
+        LIMIT 1
+    </select>
+
+    <!-- ==============================================================
+        INSERT
+    =============================================================== -->
+
+    <!-- member_point_save 등록 -->
+    <insert id="insertMemberPointSave" parameterType="MemberPointDto" useGeneratedKeys="true" keyProperty="insertedIdx">
+        INSERT INTO <include refid="database"/>`puppycat_member_point_save`
+        <set>
+            `member_uuid`   = #{memberUuid},
+            `title`         = #{title},
+            `point`         = #{point},
+            `rest_point`    = #{point},
+            `state`         = 1,
+            `expiredate`    = #{expireDate},
+            `expiredate_tz` = '${convertTZ}',
+            `regdate`       = #{regdate},
+            `regdate_tz`    = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- member_point_log 적립 등록 -->
+    <insert id="insertMemberPointLog" parameterType="MemberPointDto">
+        INSERT INTO <include refid="database"/>`puppycat_member_point_log`
+        <set>
+            `point_save_idx`    = #{pointSaveIdx},
+            `member_uuid`       = #{memberUuid},
+            `point`             = #{point},
+            `position`          = #{position},
+            `title`             = #{title},
+            `product_order_id`  = #{productOrderId},
+            `type`              = #{type},
+            `state`             = 1,
+            `regdate`           = #{regdate},
+            `regdate_tz`        = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+        UPDATE
+    =============================================================== -->
+    <!-- 회원 보유 포인트 업데이트 -->
+    <update id="updateMemberPoint" parameterType="MemberPointDto">
+        UPDATE <include refid="database"/>`puppycat_member_point`
+        <set>
+            `point`         = #{point},
+            `save_point`    = #{savePoint},
+            `use_point`     = #{usePoint},
+            `expire_point`  = #{expirePoint}
+        </set>
+        WHERE
+            `member_uuid` = #{memberUuid}
+    </update>
+
+    <!-- member_point_save 테이블 update(차감된 결과 값으로 남은 코인 update)-->
+    <update id="updateMemberRestPointToSave" parameterType="MemberPointDto">
+        UPDATE <include refid="database"/>`puppycat_member_point_save`
+        SET
+            `rest_point` = #{subResultPoint}
+        WHERE
+            `idx` = #{pointSaveIdx}
+    </update>
+
+</mapper>

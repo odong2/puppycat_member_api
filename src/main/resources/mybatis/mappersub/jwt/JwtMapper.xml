@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.jwt.JwtDaoSub">
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+
+    <!-- ==============================================================
+       SELECT
+    =============================================================== -->
+    <!-- jwt refresh 토큰 체크 -->
+    <select id="checkRefreshToken" parameterType="hashMap" resultType="java.lang.Integer">
+        SELECT
+            COUNT(`jwt`.`idx`) AS `cnt`
+        FROM
+            <include refid="database" />`puppycat_jwt_refresh_token` AS `jwt`
+        WHERE  
+              `jwt`.`id` = #{id}
+          AND `jwt`.`member_uuid` = #{memberUuid}
+          AND `jwt`.`app_key` = #{appKey}
+    </select>
+
+    <!-- jwt refresh 토큰 체크 -->
+    <select id="checkRefreshTokenByToken" parameterType="hashMap" resultType="java.lang.Integer">
+        SELECT
+            COUNT(`jwt`.`idx`) AS `cnt`
+        FROM
+            <include refid="database" />`puppycat_jwt_refresh_token` AS `jwt`
+        WHERE
+            `jwt`.`id` = #{id}
+        AND
+            `jwt`.`member_uuid` = #{memberUuid}
+        AND
+            `jwt`.`app_key` = #{appKey}
+        AND
+            `jwt`.`refresh_token` = #{refreshToken}
+    </select>
+</mapper>

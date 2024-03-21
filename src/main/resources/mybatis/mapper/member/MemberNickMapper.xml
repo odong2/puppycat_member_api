@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.member.MemberNickDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        INSERT
+    =============================================================== -->
+    <!-- 닉네임 로그 등록하기 -->
+    <insert id="insertLog" parameterType="MemberNickDto" useGeneratedKeys="true"  keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_nick_log`
+        <set>
+            `member_uuid`       = #{memberUuid},
+            `nick`              = #{nick},
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+       UPDATE
+   =============================================================== -->
+    <!-- 닉네임 수정하기 -->
+    <insert id="nickUpdate" parameterType="MemberNickDto" useGeneratedKeys="true"  keyProperty="affectedRow">
+        UPDATE <include refid="database" />`puppycat_member`
+        <set>
+            `nick`  = #{nick}
+        </set>
+        WHERE `uuid` = #{memberUuid}
+    </insert>
+</mapper>

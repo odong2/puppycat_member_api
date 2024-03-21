@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.member.LoginMemberDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        INSERT
+    =============================================================== -->
+    <!-- 로그인 정보 등록하기 -->
+    <insert id="insertMemberLogin" parameterType="MemberDto" useGeneratedKeys="true"  keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_login`
+        <set>
+            `member_uuid`       = #{memberUuid}
+            ,`login_ip`          = #{loginIp}
+            ,`reg_date`          = #{regDate}
+            ,`reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 로그인 로그 등록하기 -->
+    <insert id="insertMemberLoginLog" parameterType="MemberNickDto" useGeneratedKeys="true"  keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_login_log`
+        <set>
+            `member_uuid`       = #{memberUuid}
+            ,`login_ip`          = #{loginIp}
+            ,`reg_date`          = #{regDate}
+            ,`reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+       UPDATE
+   =============================================================== -->
+    <!-- 로그인 로그 수정하기 -->
+    <insert id="updateMemberLogin" parameterType="MemberDto" useGeneratedKeys="true"  keyProperty="affectedRow">
+        UPDATE <include refid="database" />`puppycat_member_login`
+        <set>
+            `login_ip`     = #{loginIp}
+            ,`reg_date`    = #{regDate}
+            ,`reg_date_tz` = '${convertTZ}'
+        </set>
+        WHERE `member_uuid` = #{memberUuid}
+    </insert>
+</mapper>

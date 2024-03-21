@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.access.AccessDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+       INSERT
+   =============================================================== -->
+    <!-- 접속 정보 등록 -->
+    <insert id="accessInsert" parameterType="MemberDto">
+        INSERT INTO <include refid="database" />`puppycat_member_access`
+        <set>
+            `member_uuid`       = #{memberUuid},
+            `app_key`           = #{appKey},
+            `domain`            = #{domain},
+            `app_ver`           = #{appVer},
+            `access_ip`         = #{accessIp},
+            `iso`               = #{iso},
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 접속 정보 로그 등록 -->
+    <insert id="accessLogInsert" parameterType="MemberDto">
+        INSERT INTO <include refid="database" />`puppycat_member_access_log`
+        <set>
+            `member_uuid`       = #{memberUuid},
+            `app_key`           = #{appKey},
+            `domain`            = #{domain},
+            `app_ver`           = #{appVer},
+            `access_ip`         = #{accessIp},
+            `iso`               = #{iso},
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 앱 정보 등록 -->
+    <insert id="appInsert" parameterType="MemberDto">
+        INSERT INTO <include refid="database" />`puppycat_member_app`
+        <set>
+            `member_uuid`       = #{memberUuid},
+            `app_key`           = #{appKey},
+            `app_ver`           = #{appVer},
+            `fcm_token`         = #{fcmToken},
+            `state`             = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+       UPDATE
+   =============================================================== -->
+    <!-- 접속 정보 업데이트 -->
+    <update id="accessUpdate" parameterType="MemberDto">
+        UPDATE <include refid="database" />`puppycat_member_access`
+        <set>
+            `app_key`           = #{appKey},
+            `domain`            = #{domain},
+            `app_ver`           = #{appVer},
+            `access_ip`         = #{accessIp},
+            `iso`               = #{iso},
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+        WHERE `member_uuid` = #{memberUuid}
+        LIMIT 1
+    </update>
+
+    <!-- 앱 정보 업데이트 -->
+    <update id="appUpdate" parameterType="MemberDto">
+        UPDATE <include refid="database" />`puppycat_member_app`
+        <set>
+            `member_uuid`     = #{memberUuid},
+            `app_key`         = #{appKey},
+            `app_ver`         = #{appVer},
+            `fcm_token`       = #{fcmToken},
+            `state`           = 1,
+            `modi_date`       = #{modiDate},
+            `modi_date_tz`    = '${convertTZ}'
+        </set>
+        WHERE `app_key` = #{appKey}
+        LIMIT 1
+    </update>
+
+    <!-- 앱 정보 상태값 0 (로그아웃) -->
+    <update id="appStateUpdate" parameterType="MemberDto">
+        UPDATE <include refid="database" />`puppycat_member_app`
+        <set>
+            `fcm_token`          = '',
+            `state`              = 0,
+            `modi_date`          = #{modiDate},
+            `modi_date_tz`       = '${convertTZ}'
+        </set>
+        WHERE `app_key` = #{appKey}
+        LIMIT 1
+    </update>
+
+    <!-- 앱 정보 FCM 초기화 -->
+    <update id="fcmUpdate" parameterType="MemberDto">
+        UPDATE <include refid="database" />`puppycat_member_app`
+        <set>
+            `fcm_token` = ''
+        </set>
+        WHERE `fcm_token` = #{fcmToken}
+    </update>
+
+    <!-- ==============================================================
+        DELETE
+    =============================================================== -->
+
+</mapper>

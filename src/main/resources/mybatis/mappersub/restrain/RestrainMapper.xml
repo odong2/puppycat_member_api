@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.restrain.RestrainDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="memberRestrainColumns">
+        `pumere`.`idx`
+        ,`pumere`.`member_uuid`
+        ,`pume`.`id`
+        ,IFNULL(`pume`.`nick`,"") AS `nick`
+        ,`pumeretyna`.`idx` AS `type_idx`
+        ,IFNULL(`pumeretyna`.`name`,`pumerety`.`name`) AS `restrain_type`
+        ,`pumereda`.`date` AS `date`
+        ,`pumereda`.`title` AS `date_title`
+        ,IFNULL(`pumerere`.`reason`,IFNULL(`pumerecona`.`name`,`pumereco`.`name`)) AS `restrain_name`
+        ,CONVERT_TZ( `pumere`.`start_date`, 'UTC', '${convertTZ}') AS `start_date`
+        ,CONVERT_TZ( `pumere`.`end_date`, 'UTC', '${convertTZ}') AS `end_date`
+        ,`pumere`.`state`
+        ,CONVERT_TZ( `pumere`.`reg_date`, 'UTC', '${convertTZ}') AS `reg_date`
+   </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 회원 현재 제재건 가져오기-->
+    <select id="getRestrainList" parameterType="RestrainDto" resultType="int">
+        SELECT
+            `pumeretyna`.`idx` AS `type_idx`
+        FROM
+             <include refid="database"/>`puppycat_member_restrain` AS `pumere`
+        INNER JOIN `puppycat_member` AS `pume`
+	        ON `pumere`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN `puppycat_member_restrain_type` AS `pumerety`
+	        ON `pumerety`.`idx` = `pumere`.`type`
+            AND `pumerety`.`state` = 1
+        LEFT JOIN `puppycat_member_restrain_type_name` AS `pumeretyna`
+            ON `pumerety`.`idx` = `pumeretyna`.`type_idx`
+            AND `pumeretyna`.`lang` = "ko"
+            AND `pumeretyna`.`state` = 1
+        INNER JOIN `puppycat_member_restrain_date` AS `pumereda`
+            ON `pumereda`.`idx` = `pumere`.`date`
+        INNER JOIN `puppycat_member_restrain_code` AS `pumereco`
+            ON `pumere`.`restrain_code` = `pumereco`.`idx`
+        LEFT JOIN `puppycat_member_restrain_code_name` AS `pumerecona`
+            ON `pumereco`.`idx` = `pumerecona`.`code_idx`
+        LEFT JOIN `puppycat_member_restrain_reason` AS `pumerere`
+            ON `pumere`.`idx` = `pumerere`.`restrain_idx`
+        WHERE
+                `pumere`.`member_uuid` = #{memberUuid}
+            AND  `pumere`.`start_date` <![CDATA[ <= ]]> #{nowDate}
+            AND `pumere`.`end_date` <![CDATA[ >= ]]>  #{nowDate}
+            AND `pumere`.`state` = 1
+        ORDER BY  `pumere`.`reg_date` DESC
+    </select>
+
+    <!-- 항목 별 현재 제재중인지 체크-->
+    <select id="getRestrainCheck" parameterType="RestrainDto" resultType="int">
+        SELECT
+           COUNT(`pumere`.`idx`) AS `iTotalCount`
+        FROM
+             <include refid="database"/>`puppycat_member_restrain` AS `pumere`
+        INNER JOIN `puppycat_member` AS `pume`
+	        ON `pumere`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN `puppycat_member_restrain_type` AS `pumerety`
+	        ON `pumerety`.`idx` = `pumere`.`type`
+            AND `pumerety`.`state` = 1
+        LEFT JOIN `puppycat_member_restrain_type_name` AS `pumeretyna`
+            ON `pumerety`.`idx` = `pumeretyna`.`type_idx`
+            AND `pumeretyna`.`lang` = "ko"
+            AND `pumeretyna`.`state` = 1
+        INNER JOIN `puppycat_member_restrain_date` AS `pumereda`
+            ON `pumereda`.`idx` = `pumere`.`date`
+        INNER JOIN `puppycat_member_restrain_code` AS `pumereco`
+            ON `pumere`.`restrain_code` = `pumereco`.`idx`
+        LEFT JOIN `puppycat_member_restrain_code_name` AS `pumerecona`
+            ON `pumereco`.`idx` = `pumerecona`.`code_idx`
+        LEFT JOIN `puppycat_member_restrain_reason` AS `pumerere`
+            ON `pumere`.`idx` = `pumerere`.`restrain_idx`
+        WHERE
+                `pumere`.`member_uuid` = #{memberUuid}
+            AND  `pumere`.`start_date` <![CDATA[ <= ]]> #{nowDate}
+            AND `pumere`.`end_date` <![CDATA[ >= ]]>  #{nowDate}
+            AND `pumerety`.`idx` = #{type}
+            AND `pumere`.`state` = 1
+        ORDER BY  `pumere`.`reg_date` DESC
+    </select>
+
+        <!-- 회원 현재 제재건 가져오기-->
+    <select id="getInfoRestrain" parameterType="RestrainDto" resultType="RestrainDto">
+        SELECT
+            <include refid="memberRestrainColumns"/>
+        FROM
+             <include refid="database"/>`puppycat_member_restrain` AS `pumere`
+        INNER JOIN `puppycat_member` AS `pume`
+	        ON `pumere`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN `puppycat_member_restrain_type` AS `pumerety`
+	        ON `pumerety`.`idx` = `pumere`.`type`
+            AND `pumerety`.`state` = 1
+        LEFT JOIN `puppycat_member_restrain_type_name` AS `pumeretyna`
+            ON `pumerety`.`idx` = `pumeretyna`.`type_idx`
+            AND `pumeretyna`.`lang` = "ko"
+            AND `pumeretyna`.`state` = 1
+        INNER JOIN `puppycat_member_restrain_date` AS `pumereda`
+            ON `pumereda`.`idx` = `pumere`.`date`
+        INNER JOIN `puppycat_member_restrain_code` AS `pumereco`
+            ON `pumere`.`restrain_code` = `pumereco`.`idx`
+        LEFT JOIN `puppycat_member_restrain_code_name` AS `pumerecona`
+            ON `pumereco`.`idx` = `pumerecona`.`code_idx`
+        LEFT JOIN `puppycat_member_restrain_reason` AS `pumerere`
+            ON `pumere`.`idx` = `pumerere`.`restrain_idx`
+        WHERE
+                `pumere`.`member_uuid` = #{memberUuid}
+            AND  `pumere`.`start_date` <![CDATA[ <= ]]> #{nowDate}
+            AND `pumere`.`end_date` <![CDATA[ >= ]]>  #{nowDate}
+            AND `pumerety`.`idx` = #{type}
+            AND `pumere`.`state` = 1
+        ORDER BY  `pumere`.`end_date` DESC
+        LIMIT 1
+    </select>
+
+</mapper>

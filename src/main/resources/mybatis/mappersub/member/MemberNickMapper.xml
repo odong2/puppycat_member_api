@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.member.MemberNickDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="memberNickColumns">
+
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 사용중인 닉네임 카운트 가져오기 -->
+    <select id="getCountByNick" parameterType="MemberNickDto" resultType="int">
+        SELECT
+            COUNT(`pume`.`idx`) AS `cnt`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        WHERE
+            LOWER(`pume`.`nick`) = LOWER(#{nick})
+    </select>
+
+     <!-- 회원 닉네임 조회 -->
+    <select id="getNickByUuid" parameterType="String" resultType="String">
+        SELECT
+            `pume`.`nick`
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        WHERE
+           `pume`.`uuid` = #{memberUuid}
+    </select>
+</mapper>

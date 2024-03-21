@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.noti.NotiDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+      SELECT
+   =============================================================== -->
+
+    <!-- ==============================================================
+        INSERT
+    =============================================================== -->
+    <!-- 알림 등록하기 -->
+    <insert id="registNoti" parameterType="NotiDto" useGeneratedKeys="true" keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_notification`
+        <set>
+            `member_uuid`       = #{memberUuid}
+            ,`type`             = 1
+            ,`sub_type`         = #{subType}
+            ,`all_noti_idx`     = 0
+            ,`sender_uuid`      = #{senderUuid}
+            ,`contents_idx`     = #{contentsIdx}
+            ,`comment_idx`      = #{commentIdx}
+            ,`title`            = #{title}
+            ,`body`             = #{body}
+            ,`img`              = #{img}
+            ,`contents`         = #{contents}
+            ,`state`            = 1
+            ,`is_show`          = 0
+            ,`reg_date`         = #{regDate}
+            ,`reg_date_tz`      = '${convertTZ}'
+        </set>
+    </insert>
+
+    <insert id="registNotiList" parameterType="java.util.List">
+        INSERT INTO<include refid="database"/>`puppycat_member_notification`
+            (
+            `member_uuid`
+            ,`type`
+            ,`sub_type`
+            ,`all_noti_idx`
+            ,`sender_uuid`
+            ,`contents_idx`
+            ,`comment_idx`
+            ,`title`
+            ,`body`
+            ,`img`
+            ,`contents`
+            ,`state`
+            ,`is_show`
+            ,`reg_date`
+            ,`reg_date_tz`
+            )
+        VALUES
+        <foreach collection="memberUuidList" item="memberUuid" separator=",">
+            (
+            #{memberUuid},
+            1,
+            #{subType},
+            0,
+            #{senderUuid},
+            #{contentsIdx},
+            #{commentIdx},
+            #{title},
+            #{body},
+            #{img},
+            #{contents},
+            1,
+            0,
+            #{regDate},
+            '${convertTZ}'
+            )
+        </foreach>
+    </insert>
+
+    <!-- 공지 알림 등록하기 -->
+    <insert id="insertNoticeNoti" parameterType="NotiDto" useGeneratedKeys="true" keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_notification`
+        <set>
+            `member_uuid`       = #{memberUuid}
+            ,`type`             = #{type}
+            ,`sub_type`         = #{subType}
+            ,`all_noti_idx`     = #{idx}
+            ,`sender_uuid`      = ""
+            ,`contents_idx`     = #{contentsIdx}
+            ,`comment_idx`      = #{commentIdx}
+            ,`title`            = #{title}
+            ,`body`             = #{body}
+            ,`state`            = 1
+            ,`is_show`          = 0
+            ,`reg_date`         = #{regDate}
+            ,`reg_date_tz`      = #{regDateTz}
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+        UPDATE
+    =============================================================== -->
+    <!-- reg_date업데이트 -->
+    <update id="modiNotiRegDate" parameterType="NotiDto" keyProperty="affectedRow">
+        UPDATE
+            <include refid="database" />`puppycat_member_notification`
+        SET
+            `reg_date`         = #{regDate}
+            ,`reg_date_tz`     = '${convertTZ}'
+        WHERE
+            `idx` = #{idx}
+    </update>
+
+
+
+        <!-- 공지 알림 등록하기 -->
+    <insert id="insertNotiShow" parameterType="NotiDto" useGeneratedKeys="true" keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_notification_show`
+        <set>
+            `member_uuid`        = #{memberUuid}
+            ,`show_date`         = #{regDate}
+            ,`show_date_tz`      = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 마지막 알림 확인일 수정 -->
+    <update id="updateNotiShow" parameterType="NotiDto" keyProperty="affectedRow">
+        UPDATE
+            <include refid="database" />`puppycat_member_notification_show`
+        SET
+            `show_date`       = #{regDate}
+            ,`show_date_tz`   = '${convertTZ}'
+        WHERE
+            `member_uuid` = #{memberUuid}
+    </update>
+
+    <!-- ==============================================================
+        DELETE
+    =============================================================== -->
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.follow.FollowDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="memberColumns">
+
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 팔로잉 검색 시 카운트 sns_member_follow -->
+    <select id="getFollowSearchCnt" parameterType="SearchDto" resultType="_long">
+        SELECT
+            COUNT(`pume`.`idx`) AS `iTotalCount`
+        FROM
+            <include refid="database"/>`puppycat_member` AS `pume`
+        <where>
+            <if test="searchWord != '' and searchWord != null">
+                <bind name="val" value="'%' + searchWord + '%'" />
+                <choose>
+                    <when test="searchType == 'id'">
+                        AND `pume`.`id` LIKE #{val}
+                    </when>
+                    <when test="searchType == 'nick'">
+                        AND `pume`.`nick` LIKE #{val}
+                    </when>
+                </choose>
+            </if>
+            AND `pume`.`uuid` IN
+            <foreach collection="memberUuidList" item="uuid" open="("  separator="," close=")">
+                #{uuid}
+            </foreach>
+        </where>
+    </select>
+
+</mapper>

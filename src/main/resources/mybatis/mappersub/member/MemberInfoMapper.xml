@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.member.MemberInfoDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="memberColumns">
+
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 내 정보 가져오기 -->
+    <select id="getMyInfo" parameterType="MemberInfoDto" resultType="MemberInfoDto">
+        SELECT
+            `pume`.`nick`,
+            `pume`.`uuid`,
+            `pumein`.`name`,
+            `pumein`.`phone`,
+            `pumechta`.`hash_id` AS `channelTalkHash`,
+            `pumesi`.`simple_type`,
+            `pumesi`.`simple_id`,
+            `pume`.`id` AS `email`,
+            IF(`pumeprim`.`url` = '','',CONCAT(#{imgDomain}, `pumeprim`.`url`)) `profileImgUrl`,
+            `pumeprin`.`intro`
+        FROM <include refid="database" />`puppycat_member` AS `pume`
+        INNER JOIN <include refid="database" />`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_simple` AS `pumesi`
+            ON `pumesi`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN  <include refid="database" /> `puppycat_member_channel_talk` AS `pumechta`
+            ON `pumechta`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_profile_intro` AS `pumeprin`
+            ON `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_profile_img` AS `pumeprim`
+            ON `pumeprim`.`member_uuid` = `pume`.`uuid` AND `pumeprim`.`sort` = 1
+        WHERE
+            `pume`.`uuid` = #{memberUuid}
+    </select>
+
+    <!-- 회원 정보 조회 order by nick-->
+    <select id="getMemberInfoOrderByNick" parameterType="SearchDto" resultType="MemberInfoDto">
+        SELECT
+            `pume`.`uuid`
+            ,`pume`.`id`
+            ,`pume`.`nick`
+            , IF(`pumeprim`.`url` = '','',CONCAT(#{imgDomain}, `pumeprim`.`url`)) `profileImgUrl`
+            ,`pumeprin`.`intro`
+        FROM
+            <include refid="database"/>`puppycat_member` AS `pume`
+        INNER JOIN  <include refid="database"/>`puppycat_member_profile_intro` AS `pumeprin`
+            ON  `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN  <include refid="database"/>`puppycat_member_profile_img` AS `pumeprim`
+            ON  `pumeprim`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        <where>
+            <if test="searchWord != '' and searchWord != null">
+                <bind name="val" value="'%' + searchWord + '%'" />
+                <choose>
+                    <when test="searchType == 'id'">
+                        AND `pume`.`id` LIKE #{val}
+                    </when>
+                    <when test="searchType == 'nick'">
+                        AND `pume`.`nick` LIKE #{val}
+                    </when>
+                </choose>
+            </if>
+            AND `pume`.`uuid` IN
+            <foreach collection="memberUuidList" item="uuid" open="("  separator="," close=")">
+                #{uuid}
+            </foreach>
+            AND `pume`.`state` = 1
+        </where>
+        ORDER BY (
+            CASE
+            WHEN ASCII(SUBSTRING(`pume`.`nick`, 1)) BETWEEN 48 AND 57 THEN 3 -- Numeric characters (ASCII range 48-57)
+            WHEN ASCII(SUBSTRING(`pume`.`nick`, 1)) <![CDATA[ < ]]> 123 THEN 2 -- English alphabet characters (ASCII range 97-122)
+            ELSE 1 -- Other characters
+            END
+        ), `pume`.`nick`
+        LIMIT #{recordSize}
+        OFFSET #{offset}
+    </select>
+
+    <!-- 해당 회원 정보 가져오기 by Uuid -->
+    <select id="getMemberInfoByUuid" parameterType="memberDto" resultType="MemberInfoDto">
+        SELECT
+            `pume`.`uuid`,
+            `pume`.`nick`,
+            `pumesi`.`simple_type`,
+            `pume`.`id` AS `email`,
+            IF(`pumeprim`.`url` = '','',CONCAT(#{imgDomain}, `pumeprim`.`url`)) `profileImgUrl`,
+            `pumeprin`.`intro`
+        FROM <include refid="database" />`puppycat_member` AS `pume`
+        INNER JOIN <include refid="database" />`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_simple` AS `pumesi`
+            ON `pumesi`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_profile_intro` AS `pumeprin`
+            ON `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_profile_img` AS `pumeprim`
+            ON `pumeprim`.`member_uuid` = `pume`.`uuid`
+            AND `pumeprim`.`sort` = 1
+        WHERE
+                `pume`.`uuid` = #{uuid}
+            AND `pume`.`state` = 1
+    </select>
+
+</mapper>

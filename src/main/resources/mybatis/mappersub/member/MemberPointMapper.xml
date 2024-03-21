@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.member.MemberPointDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="pointColumns">
+
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+
+    <!-- 사용 & 적립 포인트 카운트 -->
+    <select id="getMemberSaveAndUsePointCnt" parameterType="SearchDto" resultType="int">
+        SELECT
+            COUNT(`pumepolo`.`idx`) AS `totalCnt`
+        FROM <include refid="database"/>`puppycat_member_point_log` AS `pumepolo`
+        INNER JOIN <include refid="database"/>`puppycat_member` AS `pume`
+            ON `pume`.`uuid` = `pumepolo`.`member_uuid`
+            AND `pume`.`state` = 1
+        WHERE
+                `pumepolo`.`member_uuid` = #{loginMemberUuid}
+            AND `pumepolo`.`state` = 1
+            AND `pumepolo`.`type` in (1, 2)
+            <if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                <![CDATA[
+                    AND (`pumepolo`.`regdate` >= #{startDate} AND `pumepolo`.`regdate` <= #{endDate})
+                ]]>
+            </if>
+    </select>
+
+    <!-- 사용 & 적립 포인트 리스트 -->
+    <select id="getMemberSaveAndUsePointList" parameterType="SearchDto" resultType="MemberPointDto">
+        SELECT
+            `pumepolo`.`idx`,
+            `pumepolo`.`point`,
+            `pumepolo`.`position`,
+            `pumepolo`.`title`,
+            IFNULL(`pumepolo`.`product_order_id`, '') AS `productOrderId`,
+            `pumepolo`.`type`,
+            CONVERT_TZ(`pumepolo`.`regdate`, 'UTC', '${convertTZ}') AS `regdate`
+        FROM <include refid="database"/>`puppycat_member_point_log` AS `pumepolo`
+        INNER JOIN <include refid="database"/>`puppycat_member` AS `pume`
+            ON `pume`.`uuid` = `pumepolo`.`member_uuid`
+            AND `pume`.`state` = 1
+        WHERE
+                `pumepolo`.`member_uuid` = #{loginMemberUuid}
+            AND `pumepolo`.`state` = 1
+            AND `pumepolo`.`type` in (1, 2)
+            <if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                <![CDATA[
+                    AND (`pumepolo`.`regdate` >= #{startDate} AND `pumepolo`.`regdate` <= #{endDate})
+                ]]>
+            </if>
+        ORDER BY `pumepolo`.`regdate` DESC
+        <if test="pagination != null">
+            LIMIT #{recordSize}
+            OFFSET #{pagination.limitStart}
+        </if>
+    </select>
+
+    <!-- 소멸 예정 포인트 카운트 -->
+    <select id="getExpectedExpirePointCnt" parameterType="SearchDto" resultType="int">
+        SELECT
+            COUNT(`pumeposa`.`idx`) AS `totalCnt`
+        FROM (
+            SELECT
+                `pumeposa`.`idx`
+            FROM <include refid="database"/>`puppycat_member_point_save` AS `pumeposa`
+            INNER JOIN <include refid="database"/>`puppycat_member` AS `pume`
+                ON `pume`.`uuid` = `pumeposa`.`member_uuid`
+                AND `pume`.`state` = 1
+            WHERE
+                    `pumeposa`.`member_uuid` = #{loginMemberUuid}
+                AND `pumeposa`.`state` = 1
+                <if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                    <![CDATA[
+                                AND (`pumeposa`.`expiredate` >= #{startDate} AND `pumeposa`.`expiredate` <= #{endDate})
+                            ]]>
+                </if>
+            GROUP BY LEFT(`pumeposa`.`expiredate`, 10)
+        ) AS `pumeposa`
+    </select>
+
+    <!-- 소멸 예정 포인트 리스트 -->
+    <select id="getExpectedExpirePointList" parameterType="SearchDto" resultType="MemberPointDto">
+        SELECT
+            `pumeposa`.`idx`,
+            `pumeposa`.`title`,
+            SUM(`pumeposa`.`rest_point`) AS `point`,
+            LEFT(CONVERT_TZ(`pumeposa`.`expiredate`, 'UTC', '${convertTZ}'), 10) AS `expiredate`
+        FROM <include refid="database"/>`puppycat_member_point_save` AS `pumeposa`
+        INNER JOIN <include refid="database"/>`puppycat_member` AS `pume`
+            ON `pume`.`uuid` = `pumeposa`.`member_uuid`
+            AND `pume`.`state` = 1
+        WHERE
+                `pumeposa`.`member_uuid` = #{loginMemberUuid}
+            AND `pumeposa`.`state` = 1
+            <if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                <![CDATA[
+                        AND (`pumeposa`.`expiredate` >= #{startDate} AND `pumeposa`.`expiredate` <= #{endDate})
+                ]]>
+            </if>
+            GROUP BY LEFT(`pumeposa`.`expiredate`, 10)
+    </select>
+
+    <!-- 당월 소멸 예정 포인트 총합 -->
+    <select id="getExpectedExpireThisMonthTotalPoint" parameterType="SearchDto" resultType="Integer">
+        SELECT
+            SUM(`pumeposa`.`rest_point`) AS `point`
+        FROM <include refid="database"/>`puppycat_member_point_save` AS `pumeposa`
+        INNER JOIN <include refid="database"/>`puppycat_member` AS `pume`
+            ON `pume`.`uuid` = `pumeposa`.`member_uuid`
+            AND `pume`.`state` = 1
+        WHERE
+                `pumeposa`.`member_uuid` = #{loginMemberUuid}
+            AND `pumeposa`.`state` = 1
+            <if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                <![CDATA[
+                        AND (`pumeposa`.`expiredate` >= #{startDate} AND `pumeposa`.`expiredate` <= #{endDate})
+                ]]>
+            </if>
+    </select>
+
+</mapper>

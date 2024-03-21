@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.member.OutMemberDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="memberColumns">
+        `pume`.`idx` AS `memberIdx`,
+		`pume`.`id`,
+		`pume`.`uuid`,
+		`pume`.`is_simple`,
+		`pume`.`nick`,
+		`pume`.`lang`,
+		`pume`.`partner`,
+		`pume`.`login_ip`,
+		`pume`.`join_ip`,
+		`pume`.`last_login`,
+		`pume`.`last_login_tz`,
+		`pume`.`reg_date`,
+		`pume`.`reg_date_tz` ,
+        `pumepa`.`password`,
+        `pumein`.`name`,
+        `pumein`.`phone`,
+        `pumein`.`gender`,
+        `pumein`.`birth`,
+        `pumesi`.`simple_id`,
+        `pumesi`.`simple_type`,
+        `pumesi`.`auth_token`
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 회원정보 조회하기 -->
+    <select id="getInfoForOut" parameterType="OutMemberDto" resultType="OutMemberDto">
+        SELECT
+            <include refid="memberColumns" />
+        FROM
+            <include refid="database" />`puppycat_member` AS `pume`
+        INNER JOIN <include refid="database" />`puppycat_member_password` AS `pumepa`
+            ON `pumepa`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database" />`puppycat_member_info` AS `pumein`
+            ON `pume`.`uuid` = `pumein`.`member_uuid`
+        LEFT JOIN <include refid="database" />`puppycat_member_simple` AS `pumesi`
+            ON `pume`.`uuid` = `pumesi`.`member_uuid`
+        WHERE
+            `pume`.`uuid` = #{uuid}
+    </select>
+
+   <!-- 탈퇴 사유 조회하기 -->
+    <select id="getOutCodeList" resultType="OutMemberDto">
+        SELECT
+            `pumeouco`.`idx` AS `code`,
+            `pumeouco`.`name`
+        FROM
+            <include refid="database" />`puppycat_member_out_code` AS `pumeouco`
+        WHERE
+                `pumeouco`.`state` = 1
+            AND `pumeouco`.`idx` != 99
+    </select>
+
+    <!-- 회원 정보 가져오기 -->
+    <select id="getMemberOutInfoByUuid" parameterType="string" resultType="MemberDto">
+        SELECT
+            `pumeou`.`member_idx`
+            ,`pumeou`.`nick`
+        FROM
+            <include refid="database" />`puppycat_member_out` AS `pumeou`
+        WHERE
+                `pumeou`.`uuid` = #{uuid}
+            AND `pumeou`.`state` = 1
+    </select>
+</mapper>

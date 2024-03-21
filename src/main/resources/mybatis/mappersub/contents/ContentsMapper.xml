@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.contents.ContentsDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- 공통으로 사용할 field -->
+    <sql id="memberColumns">
+
+    </sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- uuid 조회 by NickList-->
+    <select id="getUuidByNick" parameterType="List" resultType="MemberDto">
+        SELECT
+            `pume`.`uuid`,
+            `pume`.`nick`
+        FROM
+            <include refid="database"/>`puppycat_member` AS `pume`
+        WHERE
+            `pume`.`nick` IN
+        <foreach collection="nickList" item="nick" open="(" separator="," close=")">
+            #{nick}
+        </foreach>
+    </select>
+
+    <!-- 멘션된 정상 회원 정보 조회  -->
+    <select id="getMentionMemberList" parameterType="List" resultType="MentionTagDto">
+        SELECT
+            `pume`.`uuid`,
+            `pume`.`nick`,
+            1 AS `state`
+        FROM <include refid="database"/>`puppycat_member` AS `pume`
+        WHERE
+                `pume`.`state` = 1
+            AND `pume`.`uuid` IN
+            <foreach collection="memberUuidList" item="uuid" open="(" separator="," close=")">
+                #{uuid}
+            </foreach>
+    </select>
+
+    <!-- 이미지 내 태그된 회원 정보 리스트 -->
+    <select id="getImgMemberTagInfoList" parameterType="MemberDto" resultType="MemberDto">
+        SELECT
+            `pume`.`nick`,
+            `pume`.`uuid`,
+            IF(`pumeprim`.`url` = '','',CONCAT(#{imgDomain}, `pumeprim`.`url`)) `profileImgUrl`,
+            `pumeprin`.`intro`,
+            1 AS `state`
+        FROM <include refid="database"/>`puppycat_member` AS `pume`
+        INNER JOIN <include refid="database"/>`puppycat_member_profile_intro` AS `pumeprin`
+            ON `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_member_profile_img` AS `pumeprim`
+            ON `pumeprim`.`member_uuid` = `pume`.`uuid`
+            AND `pumeprim`.`sort` = 1
+        WHERE
+                `pume`.`state` = 1
+            AND `pume`.`uuid` IN
+            <foreach collection="uuidList" item="uuid" open="(" separator="," close=")">
+                #{uuid}
+            </foreach>
+    </select>
+
+    <!-- 컨텐츠 작성자 정보 -->
+    <select id="getWriterInfoByUuid" parameterType="MemberDto" resultType="MemberInfoDto">
+        SELECT
+            `pume`.`uuid`,
+            `pume`.`nick`,
+            `pumesi`.`simple_type`,
+            `pume`.`id` AS `email`,
+            IF(`pumeprim`.`url` = '','', CONCAT(#{imgDomain}, `pumeprim`.`url`)) `profileImgUrl`,
+            `pumeprin`.`intro`
+        FROM <include refid="database"/>`puppycat_member` AS `pume`
+        INNER JOIN<include refid="database"/>`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN<include refid="database"/>`puppycat_member_simple` AS `pumesi`
+            ON `pumesi`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN<include refid="database"/>`puppycat_member_profile_intro` AS `pumeprin`
+            ON `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN<include refid="database"/>`puppycat_member_profile_img` AS `pumeprim`
+            ON `pumeprim`.`member_uuid` = `pume`.`uuid`
+            AND `pumeprim`.`sort` = 1
+        WHERE
+            `pume`.`uuid` = #{memberUuid}
+    </select>
+
+    <!-- 컨텐츠 작성자 리스트 정보 -->
+    <select id="getWriterInfoList" parameterType="List" resultType="MemberInfoDto">
+        SELECT
+            `pume`.`uuid`,
+            `pume`.`nick`,
+            `pumesi`.`simple_type`,
+            `pume`.`id` AS `email`,
+            IF(`pumeprim`.`url` = '','', CONCAT(#{imgDomain}, `pumeprim`.`url`)) `profileImgUrl`,
+            IFNULL(`pumeprin`.`intro`, '') AS `intro`
+        FROM <include refid="database"/>`puppycat_member` AS `pume`
+            INNER JOIN<include refid="database"/>`puppycat_member_info` AS `pumein`
+            ON `pumein`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN<include refid="database"/>`puppycat_member_simple` AS `pumesi`
+            ON `pumesi`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN<include refid="database"/>`puppycat_member_profile_intro` AS `pumeprin`
+            ON `pumeprin`.`member_uuid` = `pume`.`uuid`
+        INNER JOIN<include refid="database"/>`puppycat_member_profile_img` AS `pumeprim`
+            ON `pumeprim`.`member_uuid` = `pume`.`uuid`
+            AND `pumeprim`.`sort` = 1
+        WHERE
+            `pume`.`uuid` IN
+            <foreach collection="uuidList" item="uuid" open="(" separator="," close=")">
+                #{uuid}
+            </foreach>
+    </select>
+</mapper>

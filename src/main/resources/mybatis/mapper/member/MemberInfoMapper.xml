@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.member.MemberInfoDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+
+    <!-- ==============================================================
+           INSERT
+       =============================================================== -->
+
+    <!-- ==============================================================
+        UPDATE
+    =============================================================== -->
+    <update id="updateMemberCertificationInfo" parameterType="MemberInfoDto">
+        UPDATE <include refid="database" />`puppycat_member_info`
+        <set>
+            <if test="phone != null">
+                `phone` = #{phone},
+                `modi_date` = #{modiDate},
+                `modi_date_tz` = '${convertTZ}'
+            </if>
+        </set>
+        WHERE
+        `member_uuid` = #{memberUuid}
+        AND
+        `ci` = #{ci}
+    </update>
+</mapper>

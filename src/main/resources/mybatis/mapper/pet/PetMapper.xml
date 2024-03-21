@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.pet.PetDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        INSERT
+    =============================================================== -->
+    <!-- 반려동물 등록 -->
+    <insert id="insertPet" parameterType="PetDto" useGeneratedKeys="true" keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_pet`
+        <set>
+            `uuid`              = #{petUuid},
+            `name`              = #{name},
+            `breed_idx`         = #{breedIdx},
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 회원 반려동물 매핑 등록 -->
+    <insert id="insertMemberPet" parameterType="PetDto">
+        INSERT INTO <include refid="database" />`puppycat_member_pet`
+        <set>
+            `member_uuid`   = #{memberUuid},
+            `pet_uuid`      = #{petUuid},
+            `state`         = 1,
+            `reg_date`      = #{regDate},
+            `reg_date_tz`   = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 반려동물 정보 등록 -->
+    <insert id="insertPetInfo" parameterType="PetDto">
+        INSERT INTO <include refid="database" />`puppycat_pet_info`
+        <set>
+            `pet_uuid`          = #{petUuid},
+            `number`            = #{number},
+            `gender`            = #{gender},
+            `size`              = #{size},
+            `weight`            = #{weight},
+            `age`               = #{age},
+            `birth`             = #{birth},
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 반려동물 성격 기타 등록 -->
+    <insert id="insertPetPersonalityEtc" parameterType="PetDto">
+        INSERT INTO <include refid="database" />`puppycat_pet_personality_etc`
+        <set>
+            `pet_uuid`          = #{petUuid},
+            `personality`       = #{personalityEtc},
+            `state`             = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 반려동물 건강질환 기타 등록 -->
+    <insert id="insertPetHealthEtc" parameterType="PetDto">
+        INSERT INTO <include refid="database" />`puppycat_pet_health_etc`
+        <set>
+            `pet_uuid`          = #{petUuid},
+            `health`            = #{healthEtc},
+            `state`             = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 반려동물 알러지 기타 등록 -->
+    <insert id="insertPetAllergyEtc" parameterType="PetDto">
+        INSERT INTO <include refid="database" />`puppycat_pet_allergy_etc`
+        <set>
+            `pet_uuid`          = #{petUuid},
+            `allergy`           = #{allergyEtc},
+            `state`             = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 프로필 이미지 초기화 -->
+    <insert id="insertPetProfileImgInit" parameterType="PetDto">
+        INSERT INTO <include refid="database" />`puppycat_pet_profile_img`
+        <set>
+            `uuid`              = #{imgUuid},
+            `pet_uuid`          = #{petUuid},
+            `sort`              = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 프로필 이미지 등록 -->
+    <insert id="insertPetProfileImg" parameterType="java.util.HashMap">
+        INSERT INTO <include refid="database" />`puppycat_pet_profile_img`
+        <set>
+            `uuid`              = #{imgUuid},
+            `pet_uuid`          = #{petUuid},
+            `url`               = #{fileUrl},
+            `upload_name`       = #{orgFileName},
+            `upload_path`       = #{uploadPath},
+            `img_width`         = #{imgWidth},
+            `img_height`        = #{imgHeight},
+            `sort`              = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 프로필 이미지 로그 등록 -->
+    <insert id="insertPetProfileImgLog" parameterType="java.util.HashMap">
+        INSERT INTO <include refid="database" />`puppycat_pet_profile_img_log`
+        <set>
+            `uuid`              = #{imgUuid},
+            `pet_uuid`          = #{petUuid},
+            `url`               = #{fileUrl},
+            `upload_name`       = #{orgFileName},
+            `upload_path`       = #{uploadPath},
+            `img_width`         = #{imgWidth},
+            `img_height`        = #{imgHeight},
+            `sort`              = 1,
+            `is_del`            = 0,
+            `state`             = 1,
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 프로필 소개글 등록 -->
+    <insert id="insertPetProfileIntro" parameterType="PetDto">
+        INSERT INTO <include refid="database" />`puppycat_pet_profile_intro`
+        <set>
+            `pet_uuid`          = #{petUuid},
+            `intro`             = #{intro},
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 프로필 소개글 로그 등록 -->
+    <insert id="insertPetProfileIntroLog" parameterType="PetDto">
+        INSERT INTO <include refid="database" />`puppycat_pet_profile_intro_log`
+        <set>
+            `pet_uuid`          = #{petUuid},
+            `intro`             = #{intro},
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 성격 등록 -->
+    <insert id="insertPetPersonality" parameterType="java.util.List">
+        INSERT INTO <include refid="database" />`puppycat_pet_info_personality`
+            (
+            `pet_uuid`,
+            `personality_type_idx`,
+            `state`,
+            `reg_date`,
+            `reg_date_tz`
+            )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.petUuid},
+            #{item.idx},
+            1,
+            #{item.regDate},
+            '${convertTZ}'
+            )
+        </foreach>
+    </insert>
+
+    <!-- 건강질환 등록 -->
+    <insert id="insertPetHealth" parameterType="java.util.List">
+        INSERT INTO <include refid="database" />`puppycat_pet_info_health`
+            (
+            `pet_uuid`,
+            `health_type_idx`,
+            `state`,
+            `reg_date`,
+            `reg_date_tz`
+            )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.petUuid},
+            #{item.idx},
+            1,
+            #{item.regDate},
+            '${convertTZ}'
+            )
+        </foreach>
+    </insert>
+
+    <!-- 알러지 등록 -->
+    <insert id="insertPetAllergy" parameterType="java.util.List">
+        INSERT INTO <include refid="database" />`puppycat_pet_info_allergy`
+            (
+            `pet_uuid`,
+            `allergy_type_idx`,
+            `state`,
+            `reg_date`,
+            `reg_date_tz`
+            )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.petUuid},
+            #{item.idx},
+            1,
+            #{item.regDate},
+            '${convertTZ}'
+            )
+        </foreach>
+    </insert>
+
+    <!-- ==============================================================
+        UPDATE
+    =============================================================== -->
+    <!-- 반려동물 수정 -->
+    <update id="updatePet" parameterType="PetDto">
+        UPDATE <include refid="database"/>`puppycat_pet`
+        <set>
+            `name` = #{name},
+            `breed_idx` = #{breedIdx}
+        </set>
+        WHERE
+            `uuid` = #{petUuid}
+    </update>
+
+    <!-- 반려동물 기본 정보 수정 -->
+    <update id="updatePetInfo" parameterType="PetDto">
+        UPDATE<include refid="database"/>`puppycat_pet_info`
+        <set>
+            `number`            = #{number},
+            `gender`            = #{gender},
+            `size`              = #{size},
+            `weight`            = #{weight},
+            `age`               = #{age},
+            `birth`             = #{birth},
+            `modi_date`         = #{modiDate},
+            `modi_date_tz`      = '${convertTZ}'
+        </set>
+        WHERE
+            `pet_uuid` = #{petUuid}
+    </update>
+
+    <!-- 반려동물 성격 정보 수정 -->
+    <update id="updatePetPersonalityInfo" parameterType="Long">
+        UPDATE <include refid="database"/>`puppycat_pet_info_personality`
+        <set>
+            `state` = 1
+        </set>
+        WHERE
+                `pet_uuid`             = #{petUuid}
+            AND `personality_type_idx` = #{personalityIdx}
+    </update>
+
+    <!-- 반려동물 건강 정보 수정 -->
+    <update id="updatePetHealthInfo" parameterType="Long">
+        UPDATE <include refid="database"/>`puppycat_pet_info_health`
+        <set>
+            `state` = 1
+        </set>
+        WHERE
+                `pet_uuid`        = #{petUuid}
+            AND `health_type_idx` = #{healthIdx}
+    </update>
+
+    <!-- 반려동물 알러지 정보 수정 -->
+    <update id="updatePetAllergyInfo" parameterType="Long">
+        UPDATE <include refid="database"/>`puppycat_pet_info_allergy`
+        <set>
+            `state` = 1
+        </set>
+        WHERE
+                `pet_uuid`         = #{petUuid}
+            AND `allergy_type_idx` = #{allergyIdx}
+    </update>
+
+    <!-- 반려동물 프로필 이미지 수정 -->
+    <update id="updatePetProfileImg" parameterType="HashMap">
+        UPDATE <include refid="database"/>`puppycat_pet_profile_img`
+        <set>
+            `uuid`        = #{imgUuid},
+            `url`         = #{fileUrl},
+            `upload_name` = #{orgFileName},
+            `upload_path` = #{uploadPath},
+            `img_width`   = #{imgWidth},
+            `img_height`  = #{imgHeight},
+            `sort`        = 1,
+            `reg_date`    = #{regDate},
+            `reg_date_tz` = '${convertTZ}'
+        </set>
+        WHERE
+            `pet_uuid` = #{petUuid}
+        LIMIT 1
+    </update>
+
+    <!-- 반려동물 프로필 소개글 수정 -->
+    <update id="updatePetProfileIntro" parameterType="PetDto">
+        UPDATE <include refid="database"/>`puppycat_pet_profile_intro`
+        <set>
+            `intro` = #{intro}
+        </set>
+        WHERE
+            `pet_uuid`  = #{petUuid}
+    </update>
+
+    <!-- ==============================================================
+        DELETE
+    =============================================================== -->
+    <!-- 반려동물 기타 성격 삭제 -->
+    <update id="deletePetPersonalityEtc" parameterType="String">
+        UPDATE <include refid="database"/>`puppycat_pet_personality_etc`
+        <set>
+            `state` = 0
+        </set>
+        WHERE
+            `pet_uuid` = #{petUuid}
+    </update>
+
+    <!-- 반려동물 기타 건강질환 삭제 -->
+    <update id="deletePetHealthEtc" parameterType="String">
+        UPDATE <include refid="database"/>`puppycat_pet_health_etc`
+        <set>
+            `state` = 0
+        </set>
+        WHERE
+            `pet_uuid` = #{petUuid}
+    </update>
+
+    <!-- 반려동물 기타 알러지 삭제 -->
+    <update id="deletePetAllergyEtc" parameterType="String">
+        UPDATE <include refid="database"/>`puppycat_pet_allergy_etc`
+        <set>
+            `state` = 0
+        </set>
+        WHERE
+            `pet_uuid` = #{petUuid}
+    </update>
+
+    <!-- 성격 삭제 -->
+    <update id="deletePetPersonality" parameterType="PetDto">
+        UPDATE <include refid="database"/>`puppycat_pet_info_personality`
+        <set>
+            `state` = 0
+        </set>
+        WHERE
+                `pet_uuid`             = #{petUuid}
+            AND `personality_type_idx` = #{personalityIdx}
+    </update>
+
+    <!-- 알러지 삭제 -->
+    <update id="deletePetAllergy" parameterType="PetDto">
+        UPDATE <include refid="database"/>`puppycat_pet_info_allergy`
+        <set>
+            `state` = 0
+        </set>
+        WHERE
+                `pet_uuid`         = #{petUuid}
+            AND `allergy_type_idx` = #{allergyIdx}
+    </update>
+
+    <!-- 건강 질환 삭제 -->
+    <update id="deletePetHealth" parameterType="PetDto">
+        UPDATE <include refid="database"/>`puppycat_pet_info_health`
+        <set>
+            `state` = 0
+        </set>
+        WHERE
+                `pet_uuid`        = #{petUuid}
+            AND `health_type_idx` = #{healthIdx}
+    </update>
+
+    <!-- 회원 소유 반려동물 삭제 -->
+    <update id="deletePet" parameterType="PetDto">
+        UPDATE <include refid="database"/>`puppycat_member_pet`
+        <set>
+            `state` = 0
+        </set>
+        WHERE
+                `pet_uuid`    = #{petUuid}
+            AND `member_uuid` = #{memberUuid}
+    </update>
+
+</mapper>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.member.MemberDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 로그인 성공시 회원 정보 가져오기 -->
+    <select id="getInfoForLogin" parameterType="MemberDto" resultType="MemberDto">
+        SELECT
+            `pume`.`idx`
+            ,`pume`.`id`
+            ,`pume`.`uuid`
+            ,`pume`.`is_simple`
+            ,`pume`.`nick`
+            ,`pume`.`state`
+            ,`pume`.`is_del`
+            ,`pume`.`reg_date`
+        FROM
+            <include refid="database" /> `puppycat_member` AS `pume`
+        INNER JOIN <include refid="database" />`puppycat_member_password` AS `pumepa`
+            ON `pumepa`.`member_uuid` = `pume`.`uuid`
+        LEFT JOIN <include refid="database" />`puppycat_member_simple` AS `pumesi`
+            ON `pume`.`uuid` = `pumesi`.`member_uuid`
+        WHERE
+                `pume`.`id` = #{id}
+            AND `pumepa`.`password` = #{password}
+            AND `pumepa`.`state` = 1
+        <if test="simpleId != null and !simpleId.equals('')">
+            AND `pumesi`.`simple_id` = #{simpleId}
+        </if>
+        <if test="simpleType != null and !simpleType.equals('')">
+            AND `pumesi`.`simple_type` = #{simpleType}
+        </if>
+    </select>
+
+    <!-- 탈퇴신청일 가져오기 -->
+    <select id="getOutDate" parameterType="MemberDto" resultType="OutMemberDto">
+        SELECT
+            `pumeou`.`out_reg_date`,
+            `pumeou`.`state`
+        FROM
+            <include refid="database" />`puppycat_member_out` AS `pumeou`
+        WHERE
+            `pumeou`.`uuid` = #{memberUuid}
+        ORDER BY `pumeou`.`out_reg_date` DESC
+        LIMIT 1
+    </select>
+
+    <!-- ==============================================================
+           INSERT
+       =============================================================== -->
+    <!-- 회원 등록하기 -->
+    <insert id="insert" parameterType="MemberDto">
+        INSERT INTO <include refid="database" />`puppycat_member`
+        <set>
+            `id`             = #{id},
+            `uuid`           = #{uuid},
+            `uuid_main`      = #{uuid},
+            `lang`           = 'ko',
+            `nick`           = #{nick},
+            `is_simple`      = #{isSimple},
+            `join_ip`        = #{joinIp},
+            `login_ip`       = #{loginIp},
+            `state`          = 1,
+            `last_login`     = #{lastLogin},
+            `last_login_tz`  = '${convertTZ}',
+            `reg_date`       = #{regDate},
+            `reg_date_tz`    = '${convertTZ}',
+            <if test="partner != null">
+                `partner` = #{partner}
+            </if>
+        </set>
+    </insert>
+
+    <!-- 회원 정보 등록하기 -->
+    <insert id="insertInfo" parameterType="MemberDto" useGeneratedKeys="true" >
+        INSERT INTO <include refid="database" />`puppycat_member_info`
+        <set>
+            `member_uuid` = #{uuid},
+            `name`       = #{name},
+            `phone`      = #{phone},
+            `gender`     = #{gender},
+            `birth`      = #{birth},
+            `ci`         = #{ci},
+            `di`         = #{di},
+        </set>
+    </insert>
+
+    <!-- 회원 비밀번호 등록하기 -->
+    <insert id="insertPassword" parameterType="MemberDto" useGeneratedKeys="true" >
+        INSERT INTO <include refid="database" />`puppycat_member_password`
+        <set>
+            `member_uuid`       = #{uuid},
+            `password`          = #{password},
+            `state`             = 1,
+            `modi_date`         = #{modiDate},
+            `modi_date_tz`      = '${convertTZ}',
+            `reg_date`          = #{regDate},
+            `reg_date_tz`       = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 간편 회원가입 등록하기 -->
+    <insert id="insertSimple" parameterType="MemberDto" useGeneratedKeys="true" >
+        INSERT INTO <include refid="database" />`puppycat_member_simple`
+        <set>
+            `member_uuid`       = #{memberUuid},
+            `simple_id`         = #{simpleId},
+            `simple_type`       = #{simpleType},
+            `auth_token`        = #{refreshToken}
+        </set>
+    </insert>
+
+    <!-- 채널톡 해시값 인서트 -->
+    <insert id="insertChannelTalk" parameterType="MemberDto" useGeneratedKeys="true" >
+        INSERT INTO <include refid="database" />`puppycat_member_channel_talk`
+        <set>
+            `member_uuid`    = #{memberUuid},
+            `hash_id`        = #{hashId}
+        </set>
+    </insert>
+
+    <!-- 포인트 등록 -->
+    <insert id="insertPoint" parameterType="MemberPointDto">
+        INSERT INTO <include refid="database" />`puppycat_member_point`
+        <set>
+            `member_uuid` = #{memberUuid},
+            `regdate`    = #{regdate},
+            `regdate_tz` = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+        UPDATE
+    =============================================================== -->
+    <!-- 마지막 로그인 날짜 및 아이피 업데이트 -->
+    <update id="updateLastLogin" parameterType="MemberDto">
+        UPDATE <include refid="database" />`puppycat_member`
+        <set>
+            `login_ip`      = #{loginIp},
+            `last_login`    = #{lastLogin},
+            `last_login_tz` = '${convertTZ}'
+        </set>
+        WHERE `idx` = #{idx}
+    </update>
+
+    <!-- 회원상태 변경하기 [복구] (is_del 1 -> 0) -->
+    <update id="updateState" parameterType="MemberDto">
+        UPDATE <include refid="database" />`puppycat_member`
+        <set>
+            `is_del` = 0
+        </set>
+        WHERE
+                `uuid`    = #{memberUuid}
+            AND `is_del` = 1
+    </update>
+
+    <!-- 탈퇴상태 변경하기 [복구] (state 2 -> 3) -->
+    <update id="updateOutState" parameterType="MemberDto">
+        UPDATE <include refid="database" />`puppycat_member_out`
+        <set>
+            `state` = 3
+        </set>
+        WHERE
+                `uuid`   = #{memberUuid}
+            AND `state` = 2
+    </update>
+
+</mapper>

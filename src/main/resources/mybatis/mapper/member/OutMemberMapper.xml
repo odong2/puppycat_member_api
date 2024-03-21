@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.dao.member.OutMemberDao">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        INSERT
+    =============================================================== -->
+    <!-- 회원 탈퇴 등록하기 -->
+    <insert id="insertOutMember" parameterType="OutMemberDto" useGeneratedKeys="true" keyProperty="insertedIdx">
+        INSERT INTO <include refid="database" />`puppycat_member_out`
+        <set>
+            `code_idx`         = #{code},
+            `member_idx`       = #{memberIdx},
+            `id`               = #{id},
+            `uuid`             = #{uuid},
+            `password`         = #{password},
+            `nick`             = #{nick},
+            `partner`          = #{partner},
+            `lang`             = #{lang},
+            `is_simple`        = #{isSimple},
+            `name`             = #{name},
+            `phone`            = #{phone},
+            `gender`           = #{gender},
+            `birth`            = #{birth},
+            `login_ip`         = #{loginIp},
+            `join_ip`          = #{joinIp},
+            `last_login`       = #{lastLogin},
+            `last_login_tz`    = '${convertTZ}',
+            `reg_date`         = #{regDate},
+            `reg_date_tz`      = '${convertTZ}',
+            `state`            = 2,
+            `out_reg_date`     = #{outRegDate},
+            `out_reg_date_tz`   = '${convertTZ}'
+        </set>
+    </insert>
+
+    <!-- 회원 탈퇴 등록하기 (간편가입) -->
+    <insert id="insertOutSimpleMember" parameterType="OutMemberDto">
+        INSERT INTO <include refid="database" />`puppycat_member_simple_out`
+        <set>
+            `out_idx`         = #{insertedIdx},
+            `simple_id`       = #{simpleId},
+            `simple_type`     = #{simpleType},
+            `auth_token`      = #{authToken}
+        </set>
+    </insert>
+
+    <!-- 직접입력시 탈퇴 상세사유 등록하기 -->
+    <insert id="insertOutReason" parameterType="OutMemberDto">
+        INSERT INTO <include refid="database" />`puppycat_member_out_reason`
+        <set>
+            `out_idx`  = #{insertedIdx},
+            `reason`   = #{reason}
+        </set>
+    </insert>
+
+    <!-- ==============================================================
+        UPDATE
+    =============================================================== -->
+    <!-- 회원 탈퇴상태값 변경하기 [탈퇴] (is_del 0 -> 1) -->
+    <update id="updateIsDel" parameterType="OutMemberDto">
+        UPDATE <include refid="database" />`puppycat_member`
+        <set>
+            `is_del` = 1
+        </set>
+        WHERE
+                `uuid`    = #{uuid}
+            AND `is_del` = 0
+        LIMIT 1
+    </update>
+
+    <!-- ==============================================================
+        DELETE
+    =============================================================== -->
+    <!-- JWT 토큰 제거하기 -->
+    <delete id="deleteJwtToken" parameterType="OutMemberDto">
+        DELETE FROM <include refid="database" />`puppycat_jwt_refresh_token`
+        WHERE
+            `member_uuid`    = #{uuid}
+    </delete>
+
+    <!-- FCM 토큰 state 0 으로 변경 -->
+    <update id="deleteFcmToken" parameterType="OutMemberDto">
+        UPDATE <include refid="database" />`puppycat_member_app`
+        <set>
+            `state` = 0
+        </set>
+        WHERE
+            `member_uuid`    = #{uuid}
+    </update>
+
+</mapper>

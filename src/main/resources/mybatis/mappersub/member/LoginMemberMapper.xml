@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.member.LoginMemberDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 회원 팔로우 체크 -->
+    <select id="getMemberCntCheck" parameterType="MemberDto" resultType="int">
+        SELECT
+            COUNT(`pumelo`.`idx`) AS `iTotalCount`
+        FROM
+            <include refid="database"/>`puppycat_member_login` AS `pumelo`
+        WHERE
+            `pumelo`.`member_uuid` = #{memberUuid}
+    </select>
+
+
+    <!-- ==============================================================
+       UPDATE
+   =============================================================== -->
+</mapper>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.architecture.admin.models.daosub.pet.MemberPetDaoSub">
+    <!-- ==============================================================
+        SETTING
+    =============================================================== -->
+    <!-- database name -->
+    <sql id="database">${databaseRefId}</sql>
+
+    <!-- ==============================================================
+        SELECT
+    =============================================================== -->
+    <!-- 반려 동물 리스트 카운트 -->
+    <select id="getTotalMemberPetCnt" parameterType="SearchDto" resultType="int">
+        SELECT
+            COUNT(`pumepe`.`idx`) AS `totalCnt`
+        FROM <include refid="database"/>`puppycat_member_pet` AS `pumepe`
+        INNER JOIN <include refid="database"/>`puppycat_pet` AS `pupe`
+            ON `pupe`.`uuid` = `pumepe`.`pet_uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_breed` AS `pupebr`
+            ON `pupebr`.`idx` = `breed_idx`
+            AND `pupebr`.`state` = 1
+        INNER JOIN <include refid="database"/>`puppycat_pet_type` AS `pupety`
+            ON `pupety`.`idx` = `pupebr`.`type_idx`
+            AND `pupety`.`state` = 1
+        INNER JOIN <include refid="database"/>`puppycat_pet_info` AS `pupein`
+            ON `pupein`.`pet_uuid` = `pupe`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_profile_img` AS `pupeprim`
+            ON `pupeprim`.`pet_uuid` = `pupe`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_profile_intro` AS `pupeprin`
+            ON `pupeprin`.`pet_uuid` = `pupe`.`uuid`
+        WHERE
+                `pumepe`.`member_uuid` = #{memberUuid}
+            AND `pumepe`.`state`       = 1
+    </select>
+
+    <!-- 반려 동물 리스트 -->
+    <select id="getMemberPetList" parameterType="SearchDto" resultType="PetDto">
+        SELECT
+            `pupe`.`name`,
+            `pupe`.`uuid` AS `petUuid`,
+            `pumepe`.`member_uuid` AS `memberUuid`,
+            `pupety`.`name` AS `typeName`,
+            IF(`pupeprim`.`url` = '','',CONCAT(#{imgDomain}, `pupeprim`.`url`)) AS `imgUrl`,
+            `pupeprim`.`img_width`,
+            `pupeprim`.`img_height`,
+            `pupeprim`.`sort` AS `imgSort`
+        FROM <include refid="database"/>`puppycat_member_pet` AS `pumepe`
+        INNER JOIN <include refid="database"/>`puppycat_pet` AS `pupe`
+            ON `pupe`.`uuid` = `pumepe`.`pet_uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_breed` AS `pupebr`
+            ON `pupebr`.`idx` = `pupe`.`breed_idx`
+            AND `pupebr`.`state` = 1
+        INNER JOIN <include refid="database"/>`puppycat_pet_type` AS `pupety`
+            ON `pupety`.`idx` = `pupebr`.`type_idx`
+            AND `pupety`.`state` = 1
+        INNER JOIN <include refid="database"/>`puppycat_pet_info` AS `pupein`
+            ON `pupein`.`pet_uuid` = `pupe`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_profile_img` AS `pupeprim`
+            ON `pupeprim`.`pet_uuid` = `pupe`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_profile_intro` AS `pupeprin`
+            ON `pupeprin`.`pet_uuid` = `pupe`.`uuid`
+        WHERE
+                `pumepe`.`member_uuid` = #{memberUuid}
+            AND `pumepe`.`state`       = 1
+        ORDER BY `pumepe`.`reg_date` ASC
+        <if test="pagination != null">
+            LIMIT #{recordSize}
+            OFFSET #{pagination.limitStart}
+        </if>
+    </select>
+
+    <!-- 반려 동물 상세 -->
+    <select id="getPetView" parameterType="SearchDto" resultType="PetDto">
+        SELECT
+            `pupe`.`name`,
+            `pupe`.`uuid` AS `petUuid`,
+            `pumepe`.`member_uuid` AS `memberUuid`,
+            `pupety`.`name` AS `typeName`,
+            `pupein`.`number`,
+            `pupein`.`gender`,
+            `pupein`.`size`,
+            `pupein`.`weight`,
+            `pupein`.`age`,
+            `pupein`.`birth`,
+            `pupebr`.`idx`AS `breedIdx`,
+            `pupebr`.`name` AS `breedName`,
+            `pupeprin`.`intro`,
+            IF(`pupeprim`.`url` = '','',CONCAT(#{imgDomain}, `pupeprim`.`url`)) AS `imgUrl`,
+            `pupeprim`.`img_width`,
+            `pupeprim`.`img_height`,
+            `pupeprim`.`sort` AS `imgSort`,
+            `pupepeet`.`personality` AS `personalityEtc`,
+            `pupeheet`.`health` AS `healthEtc`,
+            `pupealet`.`allergy` AS `allergyEtc`,
+            CONVERT_TZ( `pupe`.`reg_date`, 'UTC', '${convertTZ}') AS `reg_date`
+        FROM <include refid="database"/>`puppycat_member_pet` AS `pumepe`
+        INNER JOIN <include refid="database"/>`puppycat_pet` AS `pupe`
+            ON `pupe`.`uuid` = `pumepe`.`pet_uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_breed` AS `pupebr`
+            ON `pupebr`.`idx` = `pupe`.`breed_idx`
+            AND `pupebr`.`state` = 1
+        INNER JOIN <include refid="database"/>`puppycat_pet_type` AS `pupety`
+            ON `pupety`.`idx` = `pupebr`.`type_idx`
+            AND `pupety`.`state` = 1
+        INNER JOIN <include refid="database"/>`puppycat_pet_info` AS `pupein`
+            ON `pupein`.`pet_uuid` = `pupe`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_profile_img` AS `pupeprim`
+            ON `pupeprim`.`pet_uuid` = `pupe`.`uuid`
+        INNER JOIN <include refid="database"/>`puppycat_pet_profile_intro` AS `pupeprin`
+            ON `pupeprin`.`pet_uuid` = `pupe`.`uuid`
+        LEFT JOIN <include refid="database"/>`puppycat_pet_personality_etc` AS `pupepeet`
+            ON `pupepeet`.`pet_uuid` = `pupe`.`uuid`
+            AND `pupepeet`.`state` = 1
+        LEFT JOIN <include refid="database"/>`puppycat_pet_health_etc` AS `pupeheet`
+            ON `pupeheet`.`pet_uuid` = `pupe`.`uuid`
+            AND `pupeheet`.`state` = 1
+        LEFT JOIN <include refid="database"/>`puppycat_pet_allergy_etc` AS `pupealet`
+            ON `pupealet`.`pet_uuid` = `pupe`.`uuid`
+            AND `pupealet`.`state` = 1
+        WHERE
+                `pumepe`.`pet_uuid`     = #{petUuid}
+            AND `pumepe`.`member_uuid`  = #{loginMemberUuid}
+            AND `pumepe`.`state`        = 1
+        LIMIT 1
+    </select>
+
+    <!-- 반려 동물 성격 -->
+    <select id="getPetPersonalityInfo" parameterType="SearchDto" resultType="PersonalityDto">
+        SELECT
+            `pupepety`.`idx`,
+            `pupepety`.`name`
+        FROM <include refid="database"/>`puppycat_pet_info_personality` AS `pupeinpe`
+        INNER JOIN <include refid="database"/>`puppycat_pet_personality_type` AS `pupepety`
+            ON `pupepety`.`idx` = `pupeinpe`.`personality_type_idx`
+            AND `pupepety`.`state` = 1
+        WHERE
+                `pupeinpe`.`pet_uuid`  = #{petUuid}
+            AND `pupeinpe`.`state` = 1
+    </select>
+
+    <!-- 반려 동물 건강질환 -->
+    <select id="getPetHealthInfo" parameterType="SearchDto" resultType="HealthDto">
+        SELECT
+            `pupehety`.`idx`,
+            `pupehety`.`name`
+        FROM <include refid="database"/>`puppycat_pet_info_health` AS `pupeinhe`
+        INNER JOIN <include refid="database"/>`puppycat_pet_health_type` AS `pupehety`
+            ON `pupehety`.`idx` = `pupeinhe`.`health_type_idx`
+            AND `pupehety`.`state` = 1
+        WHERE
+                `pupeinhe`.`pet_uuid`  = #{petUuid}
+            AND `pupeinhe`.`state` = 1
+    </select>
+
+    <!-- 반려 동물 알러지 -->
+    <select id="getPetAllergyInfo" parameterType="SearchDto" resultType="AllergyDto">
+        SELECT
+            `pupealty`.`idx`,
+            `pupealty`.`name`
+        FROM <include refid="database"/>`puppycat_pet_info_allergy` AS `pupeinal`
+        INNER JOIN <include refid="database"/>`puppycat_pet_allergy_type` AS `pupealty`
+            ON `pupealty`.`idx` = `pupeinal`.`allergy_type_idx`
+            AND `pupealty`.`state` = 1
+        WHERE
+                `pupeinal`.`pet_uuid`  = #{petUuid}
+            AND `pupeinal`.`state` = 1
+    </select>
+
+</mapper>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "HTTP://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <properties resource="mybatis.properties"></properties>
+    <settings>
+        <setting name="cacheEnabled" value="true"/>
+        <setting name="callSettersOnNulls" value="true"/>
+        <setting name="lazyLoadingEnabled" value="false"/>
+        <setting name="aggressiveLazyLoading" value="true"/>
+        <setting name="multipleResultSetsEnabled" value="true"/>
+        <setting name="useColumnLabel" value="true"/>
+        <setting name="useGeneratedKeys" value="false"/>
+        <setting name="autoMappingBehavior" value="PARTIAL"/>
+        <setting name="defaultExecutorType" value="REUSE" />
+        <setting name="defaultStatementTimeout" value="25000" />
+        <setting name="jdbcTypeForNull" value="NULL"/>
+        <setting name="mapUnderscoreToCamelCase" value="true" />
+    </settings>
+
+    <typeAliases>
+        <typeAlias type="java.util.HashMap" alias="hashMap" />
+        <typeAlias type="java.lang.String" alias="String"/>
+        <typeAlias type="com.architecture.admin.models.dto.member.MemberDto" alias="MemberDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.member.OutMemberDto" alias="OutMemberDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.member.MemberNickDto" alias="MemberNickDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.member.MemberInfoDto" alias="MemberInfoDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.member.profile.MemberImageDto" alias="MemberImageDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.member.profile.MemberIntroDto" alias="MemberIntroDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.SearchDto" alias="SearchDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.wordcheck.MemberWordCheckDto" alias="MemberWordCheckDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.wordcheck.PetWordCheckDto" alias="PetWordCheckDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.setting.NotificationSettingDto" alias="NotificationSettingDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.noti.NotiDto" alias="NotiDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.restrain.RestrainDto" alias="RestrainDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.push.PushDto" alias="PushDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.tag.MentionTagDto" alias="MentionTagDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.pet.PetDto" alias="PetDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.pet.BreedDto" alias="BreedDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.pet.AllergyDto" alias="AllergyDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.pet.HealthDto" alias="HealthDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.pet.PersonalityDto" alias="PersonalityDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.member.MemberPointDto" alias="MemberPointDto"/>
+        <typeAlias type="com.architecture.admin.models.dto.member.MemberPointSaveDto" alias="MemberPointSaveDto"/>
+    </typeAliases>
+
+    <mappers>
+    </mappers>
+
+</configuration>
